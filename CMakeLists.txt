@@ -15,4 +15,4 @@ target_include_directories(luapp PUBLIC include)
 
 find_package(Lua 5.3 REQUIRED)
 target_link_libraries(luapp PRIVATE ${LUA_LIBRARIES})
-target_include_directories(luapp PRIVATE ${LUA_INCLUDE_DIR})
+target_include_directories(luapp PUBLIC ${LUA_INCLUDE_DIR})
