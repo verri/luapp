@@ -15,9 +15,9 @@ extern "C"
 namespace lua
 {
 
-class value : private std::variant<nil, boolean, number, integer, string, function, userdata, table>
+class value : private std::variant<nil, boolean, floating, integer, string, function, userdata, table>
 {
-  using variant = std::variant<nil, boolean, number, integer, string, function, userdata, table>;
+  using variant = std::variant<nil, boolean, floating, integer, string, function, userdata, table>;
 
 public:
   constexpr value() noexcept = default;
@@ -41,7 +41,7 @@ public:
 
   constexpr auto is_nil() const noexcept -> bool { return is<nil>(); }
   constexpr auto is_boolean() const noexcept -> bool { return is<boolean>(); }
-  constexpr auto is_number() const noexcept -> bool { return is<number>(); }
+  constexpr auto is_floating() const noexcept -> bool { return is<floating>(); }
   constexpr auto is_integer() const noexcept -> bool { return is<integer>(); }
   constexpr auto is_string() const noexcept -> bool { return is<string>(); }
   constexpr auto is_function() const noexcept -> bool { return is<function>(); }
@@ -59,7 +59,7 @@ public:
   }
 
   constexpr auto get_boolean_or(bool value) const noexcept -> bool { return get_or<boolean>(value); }
-  constexpr auto get_number_or(number value) const noexcept -> number { return get_or<number>(value); }
+  constexpr auto get_floating_or(floating value) const noexcept -> floating { return get_or<floating>(value); }
   constexpr auto get_integer_or(integer value) const noexcept -> integer { return get_or<integer>(value); }
 
   auto get_string_or(string) const -> string;
@@ -74,10 +74,10 @@ public:
     return std::nullopt;
   }
 
-  constexpr operator std::optional<number>() const noexcept
+  constexpr operator std::optional<floating>() const noexcept
   {
-    if (is<number>())
-      return std::get<number>(*this);
+    if (is<floating>())
+      return std::get<floating>(*this);
     return std::nullopt;
   }
 

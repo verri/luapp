@@ -22,9 +22,11 @@ class value;
 struct nil {};
 
 using boolean = int;
-using number = lua_Number;
+using floating = lua_Number;
 using integer = lua_Integer;
 using string = std::string;
+
+// TODO: how to deal with automatic conversions between integer and floating (that is number)
 
 class tuple
 {
