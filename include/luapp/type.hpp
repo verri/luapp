@@ -21,17 +21,29 @@ class value;
 
 struct nil {};
 
-using boolean = int;
+class boolean
+{
+public:
+  constexpr boolean() noexcept = default;
+  constexpr boolean(bool value) noexcept : value_(value) {}
+  constexpr operator bool() const noexcept { return value_; }
+private:
+  bool value_ = false;
+};
+
 using floating = lua_Number;
 using integer = lua_Integer;
 using string = std::string;
 
 // TODO: how to deal with automatic conversions between integer and floating (that is number)
 
+template <std::size_t N>
+constexpr auto nargs = std::integral_constant<std::size_t, N>{};
+
 class tuple
 {
 public:
-  tuple() = default;
+  tuple();
 
   explicit tuple(std::vector<value>) noexcept;
 
@@ -43,7 +55,7 @@ public:
 
   template <typename R, typename... Args>
   auto apply(R(*f)(Args...)) const -> tuple {
-    static_assert(std::is_constructible_v<tuple, R>);
+    static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
     static_assert((std::is_convertible_v<value, Args> && ...));
     return apply(f, std::make_index_sequence<sizeof...(Args)>());
   }
@@ -61,23 +73,35 @@ public:
 
   auto at(std::size_t) const noexcept -> const value&;
 
+  template <std::size_t N>
+  auto expand(std::integral_constant<std::size_t, N>) const -> std::array<value, N>
+  {
+    return expand(std::make_index_sequence<N>());
+  }
+
+  auto size() const noexcept -> std::size_t;
+
+  operator const value&() const noexcept;
+
 private:
   template <typename F, std::size_t... I>
   auto apply(const F& f, std::index_sequence<I...>) const -> tuple {
     if constexpr (std::is_same_v<tuple, decltype(f(at(I)...))>)
       return f(at(I)...);
+    else if constexpr (std::is_same_v<void, decltype(f(at(I)...))>)
+      return f(at(I)...), tuple{};
     else
       return tuple{f(at(I)...)}; // deals with explicit instatiation.
   }
 
+  template <std::size_t... I>
+  auto expand(std::index_sequence<I...>) const -> std::array<value, sizeof...(I)>
+  {
+    return {{at(I)...}};
+  }
+
   std::vector<value> values_; // last is always nil
 };
-
-template <std::size_t N>
-struct nargs_t : public std::integral_constant<std::size_t, N> {};
-
-template <std::size_t N>
-constexpr auto nargs = nargs_t<N>{};
 
 class function
 {
@@ -90,7 +114,7 @@ public:
       return t.apply(f);
     }))
   {
-    static_assert(std::is_constructible_v<tuple, R>);
+    static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
     static_assert((std::is_convertible_v<value, Args> && ...));
   }
 
@@ -101,7 +125,7 @@ public:
     }))
   {
     using R = decltype(std::apply(std::declval<F>(), std::declval<std::array<value, N>>()));
-    static_assert(std::is_constructible_v<tuple, R>);
+    static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
   }
 
   function(const function&) noexcept = default;
@@ -110,11 +134,11 @@ public:
   auto operator=(const function&) noexcept -> function& = default;
   auto operator=(function&&) noexcept -> function& = default;
 
-  auto operator()(tuple) const -> tuple;
+  auto call(tuple) const -> tuple;
 
   template <typename... Args> auto operator()(Args&&... args) -> tuple
   {
-    return (*this)(tuple{std::forward<Args>(args)...});
+    return call(tuple{std::forward<Args>(args)...});
   }
 
 private:

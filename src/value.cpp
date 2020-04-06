@@ -1,4 +1,5 @@
 #include <luapp/value.hpp>
+#include <optional>
 
 namespace lua
 {
@@ -21,6 +22,13 @@ auto value::get_userdata_or(userdata value) const -> userdata
 auto value::get_table_or(table value) const noexcept -> table
 {
   return get_or<table>(std::move(value));
+}
+
+value::operator std::optional<string>() const
+{
+  if (is<string>())
+    return std::get<string>(*this);
+  return std::nullopt;
 }
 
 value::operator std::optional<function>() const noexcept

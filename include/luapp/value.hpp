@@ -15,12 +15,16 @@ extern "C"
 namespace lua
 {
 
-class value : private std::variant<nil, boolean, floating, integer, string, function, userdata, table>
+class value : private std::variant<nil, floating, integer, boolean, string, function, userdata, table>
 {
-  using variant = std::variant<nil, boolean, floating, integer, string, function, userdata, table>;
+  using variant = std::variant<nil, floating, integer, boolean, string, function, userdata, table>;
 
 public:
   constexpr value() noexcept = default;
+
+  value(const char* cstr) : value(string(cstr)) {}
+
+  constexpr value(bool v) noexcept : value(boolean(v)) {}
 
   value(const value&) = default;
   value(value&&) noexcept = default;
@@ -31,9 +35,9 @@ public:
   using variant::variant;
   using variant::operator=;
 
-  constexpr operator bool() const
+  explicit constexpr operator bool() const
   {
-    return is_boolean() ? std::get<boolean>(*this) : !is_nil();
+    return is_boolean() ? (bool)std::get<boolean>(*this) : !is_nil();
   }
 
   template <typename T>
@@ -43,6 +47,7 @@ public:
   constexpr auto is_boolean() const noexcept -> bool { return is<boolean>(); }
   constexpr auto is_floating() const noexcept -> bool { return is<floating>(); }
   constexpr auto is_integer() const noexcept -> bool { return is<integer>(); }
+  constexpr auto is_number() const noexcept -> bool { return is<floating>() || is<integer>(); }
   constexpr auto is_string() const noexcept -> bool { return is<string>(); }
   constexpr auto is_function() const noexcept -> bool { return is<function>(); }
   constexpr auto is_userdata() const noexcept -> bool { return is<userdata>(); }
@@ -102,7 +107,7 @@ public:
         return value;
       else
         return nil{};
-    }, *this);
+    }, as_variant());
   }
 };
 
