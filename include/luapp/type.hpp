@@ -102,6 +102,12 @@ public:
     static_assert(std::is_constructible_v<tuple, R>);
   }
 
+  function(const function&) noexcept = default;
+  function(function&&) noexcept = default;
+
+  auto operator=(const function&) noexcept -> function& = default;
+  auto operator=(function&&) noexcept -> function& = default;
+
   auto operator()(tuple) const -> tuple;
 
   template <typename... Args> auto operator()(Args&&... args) -> tuple
@@ -127,6 +133,12 @@ public:
   template <typename T, typename... Args>
   explicit userdata(std::in_place_type_t<T>, Args&&... args) :
     data_(std::make_shared<T>(std::forward<Args>(args)...)) {}
+
+  userdata(const userdata&) = default;
+  userdata(userdata&&) noexcept = default;
+
+  auto operator=(const userdata&) -> userdata& = default;
+  auto operator=(userdata&&) noexcept -> userdata& = default;
 
   template <typename T> auto cast() const -> std::shared_ptr<T>
   {

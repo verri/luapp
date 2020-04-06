@@ -58,14 +58,52 @@ public:
     return value;
   }
 
-  constexpr auto get_boolean(bool value) const noexcept -> bool { return get_or<boolean>(value); }
-  constexpr auto get_number(number value) const noexcept -> number { return get_or<number>(value); }
-  constexpr auto get_integer(integer value) const noexcept -> integer { return get_or<integer>(value); }
+  constexpr auto get_boolean_or(bool value) const noexcept -> bool { return get_or<boolean>(value); }
+  constexpr auto get_number_or(number value) const noexcept -> number { return get_or<number>(value); }
+  constexpr auto get_integer_or(integer value) const noexcept -> integer { return get_or<integer>(value); }
 
-  auto get_string(string) const -> string;
-  auto get_function(function) const -> function;
-  auto get_userdata(userdata) const -> userdata;
-  auto get_table(table) const -> table;
+  auto get_string_or(string) const -> string;
+  auto get_function_or(function) const noexcept -> function;
+  auto get_userdata_or(userdata) const -> userdata;
+  auto get_table_or(table) const noexcept -> table;
+
+  constexpr operator std::optional<boolean>() const noexcept
+  {
+    if (is<boolean>())
+      return std::get<boolean>(*this);
+    return std::nullopt;
+  }
+
+  constexpr operator std::optional<number>() const noexcept
+  {
+    if (is<number>())
+      return std::get<number>(*this);
+    return std::nullopt;
+  }
+
+  constexpr operator std::optional<integer>() const noexcept
+  {
+    if (is<integer>())
+      return std::get<integer>(*this);
+    return std::nullopt;
+  }
+
+  operator std::optional<string>() const;
+  operator std::optional<function>() const noexcept;
+  operator std::optional<userdata>() const;
+  operator std::optional<table>() const noexcept;
+
+  template <typename... T>
+  constexpr operator std::variant<nil, T...>() const
+    noexcept((std::is_nothrow_copy_constructible_v<T> && ...))
+  {
+    return std::visit([](const auto& value) -> std::variant<nil, T...> {
+      if constexpr ((std::is_same_v<T, std::decay_t<decltype(value)>> || ...))
+        return value;
+      else
+        return nil{};
+    }, *this);
+  }
 };
 
 } // namespace lua
