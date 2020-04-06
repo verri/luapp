@@ -42,7 +42,7 @@ public:
   template <typename R, typename... Args>
   auto apply(R(*f)(Args...)) const -> tuple {
     static_assert(std::is_constructible_v<tuple, R>);
-    static_assert((std::is_same_v<value, Args> && ...));
+    static_assert((std::is_convertible_v<value, Args> && ...));
     return apply(f, std::make_index_sequence<sizeof...(Args)>());
   }
 
@@ -89,7 +89,7 @@ public:
     }))
   {
     static_assert(std::is_constructible_v<tuple, R>);
-    static_assert((std::is_same_v<value, Args> && ...));
+    static_assert((std::is_convertible_v<value, Args> && ...));
   }
 
   template <std::size_t N, typename F>
