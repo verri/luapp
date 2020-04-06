@@ -1,3 +1,4 @@
+#include <functional>
 #include <luapp/type.hpp>
 
 #include <luapp/value.hpp>
@@ -25,8 +26,10 @@ auto tuple::at(std::size_t i) const noexcept -> const value&
   return i < values_.size() ? values_[i] : values_.back();
 }
 
-function::function(std::function<tuple(tuple)> f) noexcept : f_(std::move(f)) {}
+function::function(std::function<tuple(tuple)> f) noexcept :
+  f_(std::make_shared<std::function<tuple(tuple)>>(std::move(f)))
+{}
 
-auto function::operator()(tuple t) const -> tuple { return f_(std::move(t)); }
+auto function::operator()(tuple t) const -> tuple { return (*f_)(std::move(t)); }
 
 } // namespace lua

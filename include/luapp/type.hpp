@@ -62,7 +62,10 @@ public:
 private:
   template <typename F, std::size_t... I>
   auto apply(const F& f, std::index_sequence<I...>) const -> tuple {
-    return f(at(I)...);
+    if constexpr (std::is_same_v<tuple, decltype(f(at(I)...))>)
+      return f(at(I)...);
+    else
+      return tuple{f(at(I)...)}; // deals with explicit instatiation.
   }
 
   std::vector<value> values_; // last is always nil
@@ -107,12 +110,24 @@ public:
   }
 
 private:
-  std::function<tuple(tuple)> f_;
+  std::shared_ptr<std::function<tuple(tuple)>> f_;
 };
 
 class userdata
 {
 public:
+  userdata() noexcept = default;
+
+  template <typename T>
+  userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr)) {}
+
+  template <typename T>
+  explicit userdata(T value) : data_(std::make_any<std::shared_ptr<T>>(new T(std::move(value)))) {}
+
+  template <typename T, typename... Args>
+  explicit userdata(std::in_place_type_t<T>, Args&&... args) :
+    data_(std::make_shared<T>(std::forward<Args>(args)...)) {}
+
   template <typename T> auto cast() const -> std::shared_ptr<T>
   {
     if (const auto* p = std::any_cast<std::shared_ptr<T>>(&data_); p)
