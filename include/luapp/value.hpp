@@ -15,7 +15,7 @@ namespace lua
 
 class value
 {
-  using variant = std::variant<nil, boolean, number, integer, string, table>;
+  using variant = std::variant<nil, boolean, number, integer, string, function, userdata, table>;
 
 public:
   constexpr value() noexcept = default;
