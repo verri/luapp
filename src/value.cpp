@@ -1,5 +1,4 @@
 #include <luapp/value.hpp>
-#include <optional>
 
 namespace lua
 {

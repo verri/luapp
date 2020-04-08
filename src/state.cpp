@@ -1,6 +1,3 @@
-#include <luapp/state.hpp>
-
-#include <new>
 #include <stdexcept>
 #include <utility>
 
@@ -8,6 +5,8 @@ extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 }
+
+#include <luapp/state.hpp>
 
 namespace lua
 {

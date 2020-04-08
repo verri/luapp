@@ -1,15 +1,11 @@
 #ifndef LUAPP_VALUE_HPP_INCLUDED
 #define LUAPP_VALUE_HPP_INCLUDED
 
-#include <luapp/type.hpp>
-#include <memory>
-#include <optional>
-#include <type_traits>
 #include <variant>
+#include <optional>
+#include <memory>
 
-extern "C" {
-#include <lua.h>
-}
+#include <luapp/type.hpp>
 
 namespace lua
 {
