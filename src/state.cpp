@@ -1,4 +1,4 @@
-#include <stdexcept>
+#include <new>
 #include <utility>
 
 extern "C" {

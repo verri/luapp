@@ -1,0 +1,3 @@
+[submodule "external/cool"]
+	path = external/cool
+	url = https://github.com/verri/cool
