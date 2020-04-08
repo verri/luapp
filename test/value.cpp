@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <luapp/value.hpp>
+#include <utility>
 #include <variant>
 
 TEST_CASE("Basic value manipulation", "[value]")
@@ -38,6 +39,13 @@ TEST_CASE("Basic value manipulation", "[value]")
 
   y = c;
   CHECK(std::holds_alternative<floating>(y));
+
+  struct custom_type
+  {};
+
+  const value g = userdata(std::in_place_type<custom_type>);
+  CHECK(g.is_userdata());
+  CHECK(static_cast<std::shared_ptr<custom_type>>(g));
 }
 
 TEST_CASE("Functions", "[value]")
@@ -94,20 +102,25 @@ TEST_CASE("Functions", "[value]")
   }
 
   {
-    function f = +[](std::optional<floating> a, std::optional<floating> b,
+    struct custom_type
+    {};
+
+    function f = +[](std::shared_ptr<custom_type> a, std::optional<floating> b,
                      std::variant<nil, integer, floating> c) {
-      return tuple{a.value_or(0) > 0, (bool)b, std::holds_alternative<floating>(c)};
+      return tuple{(bool)a, (bool)b, std::holds_alternative<floating>(c)};
     };
 
     {
-      const auto [a, b, c] = f(1.0, 1.0, integer{1}).expand(nargs<3>);
+      const auto udata = userdata(std::in_place_type<custom_type>);
+      const auto [a, b, c] = f(udata, 1.0, integer{1}).expand(nargs<3>);
       CHECK(a);
       CHECK(b);
       CHECK(!c);
     }
 
     {
-      const auto [a, b, c] = f(1.0).expand(nargs<3>);
+      const auto udata = std::make_shared<custom_type>();
+      const auto [a, b, c] = f(udata).expand(nargs<3>);
       CHECK(a);
       CHECK(!b);
       CHECK(!c);
@@ -115,7 +128,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       const auto [a, b, c] = f(1.0, "wrong type", 1.0).expand(nargs<3>);
-      CHECK(a);
+      CHECK(!a);
       CHECK(!b);
       CHECK(c);
     }

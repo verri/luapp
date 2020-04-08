@@ -166,7 +166,7 @@ public:
   auto operator=(const userdata&) -> userdata& = default;
   auto operator=(userdata&&) noexcept -> userdata& = default;
 
-  template <typename T> auto cast() const -> std::shared_ptr<T>
+  template <typename T> auto cast() const noexcept -> std::shared_ptr<T>
   {
     if (const auto* p = std::any_cast<std::shared_ptr<T>>(&data_); p)
       return *p;

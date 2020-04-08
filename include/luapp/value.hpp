@@ -1,15 +1,15 @@
 #ifndef LUAPP_VALUE_HPP_INCLUDED
 #define LUAPP_VALUE_HPP_INCLUDED
 
+#include <luapp/type.hpp>
+#include <memory>
+#include <optional>
 #include <type_traits>
+#include <variant>
+
 extern "C" {
 #include <lua.h>
 }
-
-#include <luapp/type.hpp>
-
-#include <optional>
-#include <variant>
 
 namespace lua
 {
@@ -26,13 +26,16 @@ public:
 
   constexpr value(bool v) noexcept : value(boolean(v)) {}
 
+  using variant::variant;
+
+  template <typename T> value(std::shared_ptr<T> v) : value(userdata(std::move(v))) {}
+
   value(const value&) = default;
   value(value&&) noexcept = default;
 
   auto operator=(const value&) -> value& = default;
   auto operator=(value&&) noexcept -> value& = default;
 
-  using variant::variant;
   using variant::operator=;
 
   explicit constexpr operator bool() const
@@ -120,6 +123,18 @@ public:
           return value;
         else
           return nil{};
+      },
+      as_variant());
+  }
+
+  template <typename T> operator std::shared_ptr<T>() const noexcept
+  {
+    return std::visit(
+      [](const auto& value) -> std::shared_ptr<T> {
+        if constexpr (std::is_same_v<std::decay_t<decltype(value)>, userdata>)
+          return value.template cast<T>();
+        else
+          return nullptr;
       },
       as_variant());
   }
