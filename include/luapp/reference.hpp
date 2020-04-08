@@ -1,6 +1,7 @@
 #ifndef LUAPP_REFERENCE_HPP_INCLUDED
 #define LUAPP_REFERENCE_HPP_INCLUDED
 
+#include <memory>
 #include <optional>
 
 extern "C" {
@@ -25,9 +26,9 @@ public:
   operator value() const;
 
 private:
-  explicit constexpr reference(lua_State *state, int index) noexcept : state_{state}, index_{index} {}
+  reference(std::weak_ptr<lua_State>, int) noexcept;
 
-  lua_State *state_;
+  std::weak_ptr<lua_State> state_;
   int index_;
 };
 

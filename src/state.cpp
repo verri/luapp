@@ -11,27 +11,13 @@ extern "C" {
 namespace lua
 {
 
-state::state(options opt) : state_{luaL_newstate()}
+state::state(options opt) : state_{luaL_newstate(), lua_close}
 {
   if (!state_)
     throw std::bad_alloc{};
 
   if (opt & options::std_libs)
-    luaL_openlibs(state_);
-}
-
-state::~state() noexcept
-{
-  if (state_)
-    lua_close(state_);
-}
-
-state::state(state&& other) noexcept : state_{std::exchange(other.state_, nullptr)} {}
-
-auto state::operator=(state&& other) noexcept -> state&
-{
-  std::swap(state_, other.state_);
-  return *this;
+    luaL_openlibs(state_.get());
 }
 
 } // namespace lua

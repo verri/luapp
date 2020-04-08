@@ -1,6 +1,8 @@
 #ifndef LUAPP_STATE_HPP_INCLUDED
 #define LUAPP_STATE_HPP_INCLUDED
 
+#include <memory>
+
 extern "C" {
 #include <lua.h>
 }
@@ -16,16 +18,16 @@ public:
   };
 
   explicit state(options = std_libs);
-  ~state() noexcept;
+  ~state() noexcept = default;
 
-  state(const state&) = delete;
-  auto operator=(const state&) -> state& = delete;
+  state(const state&) noexcept = default;
+  state(state&&) noexcept = default;
 
-  state(state&&) noexcept;
-  auto operator=(state&&) noexcept -> state&;
+  auto operator=(const state&) noexcept -> state& = default;
+  auto operator=(state&&) noexcept -> state& = default;
 
 private:
-  lua_State* state_;
+  std::shared_ptr<lua_State> state_;
 };
 
 } // namespace lua
