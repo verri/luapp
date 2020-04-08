@@ -12,14 +12,10 @@ namespace lua
 
 reference::reference() noexcept : ref_{LUA_NOREF} {}
 
-reference::~reference() noexcept
-{
-  if (state_)
-    luaL_unref(state_.get(), LUA_REGISTRYINDEX, ref_);
-}
-
-reference::reference(std::shared_ptr<lua_State> state, int ref) noexcept
-  : state_{std::move(state)}, ref_{ref}
+reference::reference(std::shared_ptr<lua_State> state, int ref)
+  : state_{std::move(state)}, ref_{ref}, deleter_(nullptr, [this](auto) {
+      luaL_unref(state_.get(), LUA_REGISTRYINDEX, ref_);
+    })
 {}
 
 auto reference::valid() const noexcept -> bool { return state_ && ref_ != LUA_NOREF; }
@@ -37,5 +33,7 @@ auto reference::push() const -> int
 }
 
 auto reference::state() const noexcept -> lua_State* { return state_.get(); }
+
+auto reference::sstate() const noexcept -> std::shared_ptr<lua_State> { return state_; }
 
 } // namespace lua

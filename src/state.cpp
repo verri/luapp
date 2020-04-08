@@ -27,7 +27,7 @@ auto state::global_table() const -> table
 
   lua_pushglobaltable(state_.get());
   const auto index = luaL_ref(state_.get(), LUA_REGISTRYINDEX);
-  return table(reference(state_, index));
+  return table(state_, index);
 }
 
 } // namespace lua

@@ -29,6 +29,8 @@ public:
 
 private:
   explicit table(reference) noexcept;
+  table(std::shared_ptr<lua_State>, int);
+
   reference ref_;
 };
 
