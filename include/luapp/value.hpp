@@ -18,6 +18,8 @@ class value
 public:
   constexpr value() noexcept = default;
 
+  value(const reference&);
+
   value(const char* cstr) : value(string(cstr)) {}
 
   constexpr value(bool v) noexcept : value(boolean(v)) {}
@@ -134,6 +136,9 @@ public:
       },
       as_variant());
   }
+
+private:
+  static auto from_ref(const reference&) -> variant;
 };
 
 } // namespace lua

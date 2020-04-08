@@ -2,34 +2,37 @@
 #define LUAPP_REFERENCE_HPP_INCLUDED
 
 #include <memory>
-#include <optional>
 
 extern "C" {
 #include <lua.h>
 }
 
-#include <luapp/value.hpp>
-
 namespace lua
 {
 
-class state;
+class table;
+class value;
 
 class reference
 {
-  friend class state;
+  friend class table;
+  friend class value;
 
 public:
   reference() noexcept;
   ~reference() noexcept;
 
-  operator value() const;
+  auto valid() const noexcept -> bool;
+  operator bool() const noexcept;
 
 private:
-  reference(std::weak_ptr<lua_State>, int) noexcept;
+  reference(std::shared_ptr<lua_State>, int) noexcept;
 
-  std::weak_ptr<lua_State> state_;
-  int index_;
+  auto push() const -> int;
+  auto state() const noexcept -> lua_State*;
+
+  std::shared_ptr<lua_State> state_;
+  int ref_;
 };
 
 } // namespace lua

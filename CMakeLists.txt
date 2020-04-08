@@ -8,12 +8,14 @@ add_library(luapp
   src/function.cpp
   src/reference.cpp
   src/state.cpp
+  src/table.cpp
   src/tuple.cpp
   src/type.cpp
   src/value.cpp
   include/luapp/function.hpp
   include/luapp/reference.hpp
   include/luapp/state.hpp
+  include/luapp/table.hpp
   include/luapp/tuple.hpp
   include/luapp/type.hpp
   include/luapp/value.hpp)

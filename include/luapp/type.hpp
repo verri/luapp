@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include <luapp/function.hpp>
+#include <luapp/table.hpp>
 #include <luapp/tuple.hpp>
 
 namespace lua
@@ -77,12 +78,6 @@ public:
 
 private:
   std::any data_;
-};
-
-class table
-{
-public:
-private:
 };
 
 } // namespace lua
