@@ -3,12 +3,16 @@ cmake_minimum_required(VERSION 3.0)
 project(Luapp VERSION 0.1)
 
 add_library(luapp
+  src/function.cpp
   src/state.cpp
-  src/value.cpp
+  src/tuple.cpp
   src/type.cpp
+  src/value.cpp
+  include/luapp/function.hpp
   include/luapp/state.hpp
-  include/luapp/value.hpp
-  include/luapp/type.hpp)
+  include/luapp/tuple.hpp
+  include/luapp/type.hpp
+  include/luapp/value.hpp)
 
 target_compile_features(luapp PUBLIC cxx_std_17)
 target_include_directories(luapp PUBLIC include)
