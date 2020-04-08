@@ -1,8 +1,7 @@
 #ifndef LUAPP_TYPE_HPP_INCLUDED
 #define LUAPP_TYPE_HPP_INCLUDED
 
-extern "C"
-{
+extern "C" {
 #include <lua.h>
 }
 
@@ -10,16 +9,17 @@ extern "C"
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace lua
 {
 
 class value;
 
-struct nil {};
+struct nil
+{};
 
 class boolean
 {
@@ -27,6 +27,7 @@ public:
   constexpr boolean() noexcept = default;
   constexpr boolean(bool value) noexcept : value_(value) {}
   constexpr operator bool() const noexcept { return value_; }
+
 private:
   bool value_ = false;
 };
@@ -37,8 +38,7 @@ using string = std::string;
 
 // TODO: how to deal with automatic conversions between integer and floating (that is number)
 
-template <std::size_t N>
-constexpr auto nargs = std::integral_constant<std::size_t, N>{};
+template <std::size_t N> constexpr auto nargs = std::integral_constant<std::size_t, N>{};
 
 class tuple
 {
@@ -53,8 +53,8 @@ public:
     static_assert((std::is_constructible_v<value, Args> && ...));
   }
 
-  template <typename R, typename... Args>
-  auto apply(R(*f)(Args...)) const -> tuple {
+  template <typename R, typename... Args> auto apply(R (*f)(Args...)) const -> tuple
+  {
     static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
     static_assert((std::is_convertible_v<value, Args> && ...));
     return apply(f, std::make_index_sequence<sizeof...(Args)>());
@@ -85,7 +85,8 @@ public:
 
 private:
   template <typename F, std::size_t... I>
-  auto apply(const F& f, std::index_sequence<I...>) const -> tuple {
+  auto apply(const F& f, std::index_sequence<I...>) const -> tuple
+  {
     if constexpr (std::is_same_v<tuple, decltype(f(at(I)...))>)
       return f(at(I)...);
     else if constexpr (std::is_same_v<void, decltype(f(at(I)...))>)
@@ -109,20 +110,18 @@ public:
   function(std::function<tuple(tuple)>) noexcept;
 
   template <typename R, typename... Args>
-  function(R(*f)(Args...)) noexcept :
-    function(std::function<tuple(tuple)>([f](tuple t) -> tuple {
-      return t.apply(f);
-    }))
+  function(R (*f)(Args...)) noexcept
+    : function(std::function<tuple(tuple)>([f](tuple t) -> tuple { return t.apply(f); }))
   {
     static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
     static_assert((std::is_convertible_v<value, Args> && ...));
   }
 
   template <std::size_t N, typename F>
-  function(std::integral_constant<std::size_t, N>, F f) noexcept :
-    function(std::function<tuple(tuple)>([f = std::move(f)](tuple t) -> tuple {
-      return t.apply(std::integral_constant<std::size_t, N>{}, f);
-    }))
+  function(std::integral_constant<std::size_t, N>, F f) noexcept
+    : function(std::function<tuple(tuple)>([f = std::move(f)](tuple t) -> tuple {
+        return t.apply(std::integral_constant<std::size_t, N>{}, f);
+      }))
   {
     using R = decltype(std::apply(std::declval<F>(), std::declval<std::array<value, N>>()));
     static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
@@ -150,15 +149,16 @@ class userdata
 public:
   userdata() noexcept = default;
 
-  template <typename T>
-  userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr)) {}
+  template <typename T> userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr)) {}
 
   template <typename T>
-  explicit userdata(T value) : data_(std::make_any<std::shared_ptr<T>>(new T(std::move(value)))) {}
+  explicit userdata(T value) : data_(std::make_any<std::shared_ptr<T>>(new T(std::move(value))))
+  {}
 
   template <typename T, typename... Args>
-  explicit userdata(std::in_place_type_t<T>, Args&&... args) :
-    data_(std::make_shared<T>(std::forward<Args>(args)...)) {}
+  explicit userdata(std::in_place_type_t<T>, Args&&... args)
+    : data_(std::make_shared<T>(std::forward<Args>(args)...))
+  {}
 
   userdata(const userdata&) = default;
   userdata(userdata&&) noexcept = default;
@@ -180,9 +180,7 @@ private:
 class table
 {
 public:
-
 private:
-
 };
 
 } // namespace lua

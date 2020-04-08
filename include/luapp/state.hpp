@@ -1,8 +1,7 @@
 #ifndef LUAPP_STATE_HPP_INCLUDED
 #define LUAPP_STATE_HPP_INCLUDED
 
-extern "C"
-{
+extern "C" {
 #include <lua.h>
 }
 
@@ -12,8 +11,7 @@ namespace lua
 class state
 {
 public:
-  enum options : unsigned
-  {
+  enum options : unsigned {
     std_libs = 1,
   };
 
@@ -27,7 +25,7 @@ public:
   auto operator=(state&&) noexcept -> state&;
 
 private:
-  lua_State *state_;
+  lua_State* state_;
 };
 
 } // namespace lua

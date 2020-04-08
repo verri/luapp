@@ -2,8 +2,7 @@
 #define LUAPP_VALUE_HPP_INCLUDED
 
 #include <type_traits>
-extern "C"
-{
+extern "C" {
 #include <lua.h>
 }
 
@@ -15,7 +14,8 @@ extern "C"
 namespace lua
 {
 
-class value : private std::variant<nil, floating, integer, boolean, string, function, userdata, table>
+class value
+  : private std::variant<nil, floating, integer, boolean, string, function, userdata, table>
 {
   using variant = std::variant<nil, floating, integer, boolean, string, function, userdata, table>;
 
@@ -40,8 +40,10 @@ public:
     return is_boolean() ? (bool)std::get<boolean>(*this) : !is_nil();
   }
 
-  template <typename T>
-  constexpr auto is() const noexcept -> bool { return std::holds_alternative<T>(*this); }
+  template <typename T> constexpr auto is() const noexcept -> bool
+  {
+    return std::holds_alternative<T>(*this);
+  }
 
   constexpr auto is_nil() const noexcept -> bool { return is<nil>(); }
   constexpr auto is_boolean() const noexcept -> bool { return is<boolean>(); }
@@ -57,15 +59,25 @@ public:
   constexpr auto as_variant() noexcept -> variant& { return *this; }
 
   template <typename T>
-  constexpr auto get_or(T value) const noexcept(std::is_nothrow_copy_constructible_v<T>) -> T {
+  constexpr auto get_or(T value) const noexcept(std::is_nothrow_copy_constructible_v<T>) -> T
+  {
     if (is<T>())
       return std::get<T>(*this);
     return value;
   }
 
-  constexpr auto get_boolean_or(bool value) const noexcept -> bool { return get_or<boolean>(value); }
-  constexpr auto get_floating_or(floating value) const noexcept -> floating { return get_or<floating>(value); }
-  constexpr auto get_integer_or(integer value) const noexcept -> integer { return get_or<integer>(value); }
+  constexpr auto get_boolean_or(bool value) const noexcept -> bool
+  {
+    return get_or<boolean>(value);
+  }
+  constexpr auto get_floating_or(floating value) const noexcept -> floating
+  {
+    return get_or<floating>(value);
+  }
+  constexpr auto get_integer_or(integer value) const noexcept -> integer
+  {
+    return get_or<integer>(value);
+  }
 
   auto get_string_or(string) const -> string;
   auto get_function_or(function) const noexcept -> function;
@@ -102,12 +114,14 @@ public:
   constexpr operator std::variant<nil, T...>() const
     noexcept((std::is_nothrow_copy_constructible_v<T> && ...))
   {
-    return std::visit([](const auto& value) -> std::variant<nil, T...> {
-      if constexpr ((std::is_same_v<T, std::decay_t<decltype(value)>> || ...))
-        return value;
-      else
-        return nil{};
-    }, as_variant());
+    return std::visit(
+      [](const auto& value) -> std::variant<nil, T...> {
+        if constexpr ((std::is_same_v<T, std::decay_t<decltype(value)>> || ...))
+          return value;
+        else
+          return nil{};
+      },
+      as_variant());
   }
 };
 

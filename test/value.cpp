@@ -45,9 +45,7 @@ TEST_CASE("Functions", "[value]")
   using namespace lua;
 
   {
-    function f = +[](value a, value b, value c) {
-      return tuple{(bool) a, (bool) b, (bool) c};
-    };
+    function f = +[](value a, value b, value c) { return tuple{(bool)a, (bool)b, (bool)c}; };
 
     {
       const auto [a, b, c] = f().expand(nargs<3>);
@@ -84,7 +82,7 @@ TEST_CASE("Functions", "[value]")
 
   // extra arguments are ignored.
   {
-    function f = +[]() { };
+    function f = +[]() {};
     CHECK(f(1.0, 2.0, 3.0).size() == 0);
   }
 
@@ -96,8 +94,9 @@ TEST_CASE("Functions", "[value]")
   }
 
   {
-    function f = +[](std::optional<floating> a, std::optional<floating> b, std::variant<nil, integer, floating> c) {
-      return tuple{a.value_or(0) > 0, (bool) b, std::holds_alternative<floating>(c)};
+    function f = +[](std::optional<floating> a, std::optional<floating> b,
+                     std::variant<nil, integer, floating> c) {
+      return tuple{a.value_or(0) > 0, (bool)b, std::holds_alternative<floating>(c)};
     };
 
     {

@@ -4,10 +4,7 @@
 namespace lua
 {
 
-auto value::get_string_or(string value) const -> string
-{
-  return get_or<string>(std::move(value));
-}
+auto value::get_string_or(string value) const -> string { return get_or<string>(std::move(value)); }
 
 auto value::get_function_or(function value) const noexcept -> function
 {
