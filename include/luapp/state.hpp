@@ -28,7 +28,7 @@ public:
   auto operator=(const state&) noexcept -> state& = default;
   auto operator=(state&&) noexcept -> state& = default;
 
-  auto global() const noexcept -> table;
+  auto global_table() const -> table;
 
 private:
   std::shared_ptr<lua_State> state_;

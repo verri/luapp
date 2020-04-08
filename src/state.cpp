@@ -20,4 +20,14 @@ state::state(options opt) : state_{luaL_newstate(), lua_close}
     luaL_openlibs(state_.get());
 }
 
+auto state::global_table() const -> table
+{
+  if (!lua_checkstack(state_.get(), 1))
+    throw std::bad_alloc{};
+
+  lua_pushglobaltable(state_.get());
+  const auto index = luaL_ref(state_.get(), LUA_REGISTRYINDEX);
+  return table(reference(state_, index));
+}
+
 } // namespace lua

@@ -12,11 +12,13 @@ namespace lua
 
 class table;
 class value;
+class state;
 
 class reference
 {
   friend class table;
   friend class value;
+  friend class state;
 
 public:
   reference() noexcept;
