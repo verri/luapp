@@ -1,9 +1,9 @@
 #ifndef LUAPP_VALUE_HPP_INCLUDED
 #define LUAPP_VALUE_HPP_INCLUDED
 
-#include <variant>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <variant>
 
 #include <luapp/type.hpp>
 

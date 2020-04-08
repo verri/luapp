@@ -42,7 +42,9 @@ using string = std::string;
 
 // TODO: how to deal with automatic conversions between integer and floating (that is number)?
 
+// TODO: better names.
 template <std::size_t N> constexpr auto nargs = std::integral_constant<std::size_t, N>{};
+template <std::size_t N> constexpr auto nrets = std::integral_constant<std::size_t, N>{};
 
 class userdata
 {

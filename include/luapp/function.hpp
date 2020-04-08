@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <luapp/tuple.hpp>
+#include <type_traits>
 
 namespace lua
 {
@@ -43,6 +44,13 @@ public:
   template <typename... Args> auto operator()(Args&&... args) -> tuple
   {
     return call(tuple{std::forward<Args>(args)...});
+  }
+
+  template <std::size_t N, typename... Args>
+  auto operator()(std::integral_constant<std::size_t, N> ret, Args&&... args)
+    -> std::array<value, N>
+  {
+    return call(tuple{std::forward<Args>(args)...}).expand(ret);
   }
 
 private:
