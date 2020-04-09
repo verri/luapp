@@ -1,9 +1,11 @@
 #include <cassert>
+#include <stdexcept>
 
 extern "C" {
 #include <lauxlib.h>
 }
 
+#include <cool/compose.hpp>
 #include <cool/defer.hpp>
 #include <luapp/reference.hpp>
 #include <luapp/value.hpp>
@@ -46,6 +48,23 @@ auto value::from_ref(const reference& ref) -> variant
 }
 
 value::value(const reference& ref) : variant{from_ref(ref)} {}
+
+template <typename T>
+auto from_optional(std::optional<T> v)
+  -> std::variant<nil, floating, integer, boolean, string, function, userdata, table>
+{
+  if (v.has_value())
+    return *v;
+  return nil{};
+}
+
+value::value(std::optional<floating> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<integer> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<boolean> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<string> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<function> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<userdata> v) noexcept : variant(from_optional(v)) {}
+value::value(std::optional<table> v) noexcept : variant(from_optional(v)) {}
 
 auto value::get_string_or(string value) const -> string { return get_or<string>(std::move(value)); }
 
@@ -90,6 +109,37 @@ value::operator std::optional<table>() const noexcept
   if (is<table>())
     return std::get<table>(*this);
   return std::nullopt;
+}
+
+auto value::push(lua_State* state) const -> int
+{
+  if (!lua_checkstack(state, 1))
+    throw std::bad_alloc{};
+
+  return std::visit(cool::compose{
+                      [state](nil) -> int {
+                        lua_pushnil(state);
+                        return LUA_TNIL;
+                      },
+                      [state](floating f) -> int {
+                        lua_pushnumber(state, f);
+                        return LUA_TNUMBER;
+                      },
+                      [state](integer i) -> int {
+                        lua_pushinteger(state, i);
+                        return LUA_TNUMBER;
+                      },
+                      [state](boolean b) -> int {
+                        lua_pushboolean(state, b);
+                        return LUA_TBOOLEAN;
+                      },
+                      [state](const string& s) -> int {
+                        lua_pushlstring(state, s.data(), s.size());
+                        return LUA_TSTRING;
+                      },
+                      [state](const auto& other) -> int { return other.push(state); },
+                    },
+                    as_variant());
 }
 
 } // namespace lua

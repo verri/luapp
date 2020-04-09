@@ -15,6 +15,10 @@ class value
 {
   using variant = std::variant<nil, floating, integer, boolean, string, function, userdata, table>;
 
+  friend class function;
+  friend class userdata;
+  friend class table;
+
 public:
   constexpr value() noexcept = default;
 
@@ -27,6 +31,14 @@ public:
   using variant::variant;
 
   template <typename T> value(std::shared_ptr<T> v) : value(userdata(std::move(v))) {}
+
+  value(std::optional<floating>) noexcept;
+  value(std::optional<integer>) noexcept;
+  value(std::optional<boolean>) noexcept;
+  value(std::optional<string>) noexcept;
+  value(std::optional<function>) noexcept;
+  value(std::optional<userdata>) noexcept;
+  value(std::optional<table>) noexcept;
 
   value(const value&) = default;
   value(value&&) noexcept = default;
@@ -139,6 +151,7 @@ public:
 
 private:
   static auto from_ref(const reference&) -> variant;
+  auto push(lua_State*) const -> int;
 };
 
 } // namespace lua

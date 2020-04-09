@@ -4,6 +4,10 @@
 #include <functional>
 #include <memory>
 
+extern "C" {
+#include <lua.h>
+}
+
 #include <luapp/tuple.hpp>
 #include <type_traits>
 
@@ -12,6 +16,8 @@ namespace lua
 
 class function
 {
+  friend class value;
+
 public:
   function(std::function<tuple(tuple)>) noexcept;
 
@@ -54,6 +60,8 @@ public:
   }
 
 private:
+  auto push(lua_State*) const -> int;
+
   std::shared_ptr<std::function<tuple(tuple)>> f_;
 };
 

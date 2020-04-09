@@ -49,6 +49,8 @@ template <std::size_t N> constexpr auto nrets = std::integral_constant<std::size
 
 class userdata
 {
+  friend class value;
+
 public:
   userdata() noexcept = default;
 
@@ -77,6 +79,8 @@ public:
   }
 
 private:
+  auto push(lua_State*) const -> int;
+
   std::any data_;
 };
 

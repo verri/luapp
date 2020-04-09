@@ -1,6 +1,7 @@
 #include <luapp/value.hpp>
 
 #include <luapp/function.hpp>
+#include <stdexcept>
 
 namespace lua
 {
@@ -10,5 +11,7 @@ function::function(std::function<tuple(tuple)> f) noexcept
 {}
 
 auto function::call(tuple t) const -> tuple { return (*f_)(std::move(t)); }
+
+auto function::push(lua_State*) const -> int { throw std::runtime_error{"not yet implemented"}; }
 
 } // namespace lua

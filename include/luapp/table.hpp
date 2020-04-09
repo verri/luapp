@@ -25,11 +25,15 @@ public:
   auto get(std::string_view) const -> reference;
   auto set(std::string_view, const value&) const -> void;
 
-  auto operator[](std::string_view) const -> table;
+  auto get(const value&) const -> reference;
+  auto set(const value&, const value&) const -> void;
 
 private:
   explicit table(reference) noexcept;
   table(std::shared_ptr<lua_State>, int);
+
+  auto push() const -> int;
+  auto push(lua_State*) const -> int;
 
   reference ref_;
 };
