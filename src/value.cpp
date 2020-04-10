@@ -28,9 +28,14 @@ auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
     return boolean{static_cast<bool>(lua_toboolean(state, i))};
   case LUA_TSTRING:
     return string{lua_tostring(state, i)};
+  }
+
+  lua_pushvalue(state, i);
+  reference ref{std::move(sstate)};
+
+  switch (type) {
   case LUA_TTABLE:
-    lua_pushvalue(state, i);
-    return table(reference(std::move(sstate), luaL_ref(state, LUA_REGISTRYINDEX)));
+    return table(std::move(ref));
   case LUA_TFUNCTION:
     // TODO...
   case LUA_TUSERDATA:
@@ -172,13 +177,18 @@ auto value::push(lua_State* state) const -> int
                     as_variant());
 }
 
-auto value::operator[](const value& key) const -> value
+auto detail::getter::operator()(const table& t, const value& key) const -> value
 {
-  // XXX: should userdata use operator[] too?
-  if (!is_table())
-    throw std::runtime_error{"indexing an invalid value"};
-
-  return std::get<table>(as_variant()).get(key);
+  return t.get(key);
 }
+
+auto detail::setter::operator()(const table& t, const value& key, const value& v) const -> void
+{
+  t.set(key, v);
+}
+
+auto get(const table& t, const value& key) -> value { return detail::getter{}(t, key); }
+
+auto set(const table& t, const value& key, const value& v) -> void { detail::setter{}(t, key, v); }
 
 } // namespace lua

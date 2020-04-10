@@ -30,8 +30,9 @@ auto state::global_table() const -> table
     throw std::bad_alloc{};
 
   lua_pushglobaltable(state_.get());
-  const auto index = luaL_ref(state_.get(), LUA_REGISTRYINDEX);
-  return table(state_, index);
+  reference ref{state_};
+
+  return table(std::move(ref));
 }
 
 auto state::do_string(const char* code) const -> tuple

@@ -15,21 +15,29 @@ namespace lua
 class state;
 class value;
 
+namespace detail
+{
+struct getter;
+struct setter;
+} // namespace detail
+
 class table
 {
   friend class state;
   friend class value;
+  friend struct detail::getter;
+  friend struct detail::setter;
 
 public:
-  auto get(const value&) const -> reference;
-  auto set(const value&, const value&) -> void;
-
 private:
   explicit table(reference) noexcept;
-  table(std::shared_ptr<lua_State>, int);
 
-  auto push() const -> int;
+  auto get(const value&) const -> reference;
+  auto set(const value&, const value&) const -> void;
+
   auto push(lua_State*) const -> int;
+
+  auto as_value() -> const value&;
 
   reference ref_;
 };

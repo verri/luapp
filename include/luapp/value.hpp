@@ -152,13 +152,26 @@ public:
       as_variant());
   }
 
-  auto operator[](const value&) const -> value;
-
 private:
   static auto at(std::shared_ptr<lua_State>, int) -> value;
   static auto from_ref(const reference&) -> variant;
   auto push(lua_State*) const -> int;
 };
+
+namespace detail
+{
+struct getter
+{
+  auto operator()(const table&, const value&) const -> value;
+};
+struct setter
+{
+  auto operator()(const table&, const value&, const value&) const -> void;
+};
+} // namespace detail
+
+auto get(const table&, const value&) -> value;
+auto set(const table&, const value&, const value&) -> void;
 
 } // namespace lua
 

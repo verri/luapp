@@ -12,11 +12,13 @@ namespace lua
 
 class table;
 class value;
+class state;
 
 class reference
 {
   friend class table;
   friend class value;
+  friend class state;
 
 public:
   reference() noexcept;
@@ -25,7 +27,7 @@ public:
   operator bool() const noexcept;
 
 private:
-  reference(std::shared_ptr<lua_State>, int);
+  explicit reference(std::shared_ptr<lua_State>);
 
   auto push() const -> int;
   auto state() const noexcept -> lua_State*;
