@@ -56,7 +56,8 @@ auto state::do_string(const char* code) const -> tuple
   result.resize(n);
 
   for (const auto i : cool::closed_indices(1, n))
-    result[i] = value::at(state_, last_top + i);
+    result[i - 1] = value::at(state_, last_top + i);
+
   return result;
 }
 
