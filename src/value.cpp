@@ -13,6 +13,36 @@ extern "C" {
 namespace lua
 {
 
+auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
+{
+  const auto state = sstate.get();
+  const auto type = lua_type(state, i);
+
+  switch (type) {
+  case LUA_TNUMBER:
+    if (lua_isinteger(state, i))
+      return integer{lua_tointeger(state, i)};
+    else
+      return floating{lua_tonumber(state, i)};
+  case LUA_TBOOLEAN:
+    return boolean{static_cast<bool>(lua_toboolean(state, i))};
+  case LUA_TSTRING:
+    return string{lua_tostring(state, i)};
+  case LUA_TTABLE:
+    lua_pushvalue(state, i);
+    return table(reference(std::move(sstate), luaL_ref(state, LUA_REGISTRYINDEX)));
+  case LUA_TFUNCTION:
+    // TODO...
+  case LUA_TUSERDATA:
+    // TODO...
+  case LUA_TLIGHTUSERDATA: // XXX:
+  case LUA_TTHREAD:        // XXX:
+  case LUA_TNIL:
+  default:
+    return nil{};
+  }
+}
+
 auto value::from_ref(const reference& ref) -> variant
 {
   if (!ref.valid())

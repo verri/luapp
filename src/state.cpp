@@ -1,4 +1,5 @@
 #include <new>
+#include <stdexcept>
 #include <utility>
 
 extern "C" {
@@ -6,7 +7,10 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include <cool/defer.hpp>
+#include <cool/indices.hpp>
 #include <luapp/state.hpp>
+#include <luapp/value.hpp>
 
 namespace lua
 {
@@ -28,6 +32,29 @@ auto state::global_table() const -> table
   lua_pushglobaltable(state_.get());
   const auto index = luaL_ref(state_.get(), LUA_REGISTRYINDEX);
   return table(state_, index);
+}
+
+auto state::do_string(const char* code) const -> tuple
+{
+  if (!lua_checkstack(state_.get(), 1))
+    throw std::bad_alloc{};
+
+  const auto state = state_.get();
+  const auto last_top = lua_gettop(state);
+
+  if (luaL_loadstring(state, code) || lua_pcall(state, 0, LUA_MULTRET, 0)) {
+    std::string error = lua_tostring(state, -1);
+    lua_pop(state, 1);
+    throw std::runtime_error{std::move(error)};
+  }
+
+  const auto n = lua_gettop(state) - last_top;
+  COOL_DEFER(lua_pop(state, n));
+
+  tuple result;
+  for (const auto i : cool::closed_indices(1, n))
+    result[i] = value::at(state_, last_top + i);
+  return result;
 }
 
 } // namespace lua

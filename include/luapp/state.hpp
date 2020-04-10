@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include <luapp/table.hpp>
+#include <luapp/type.hpp>
 
 namespace lua
 {
@@ -29,6 +30,8 @@ public:
   auto operator=(state&&) noexcept -> state& = default;
 
   auto global_table() const -> table;
+
+  auto do_string(const char*) const -> tuple;
 
 private:
   std::shared_ptr<lua_State> state_;

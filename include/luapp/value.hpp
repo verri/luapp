@@ -18,6 +18,7 @@ class value
   friend class function;
   friend class userdata;
   friend class table;
+  friend class state;
 
 public:
   constexpr value() noexcept = default;
@@ -154,6 +155,7 @@ public:
   auto operator[](const value&) const -> value;
 
 private:
+  static auto at(std::shared_ptr<lua_State>, int) -> value;
   static auto from_ref(const reference&) -> variant;
   auto push(lua_State*) const -> int;
 };

@@ -16,7 +16,7 @@ auto tuple::operator[](std::size_t i) const noexcept -> const value& { return at
 
 auto tuple::operator[](std::size_t i) -> value&
 {
-  while (i >= values_.size())
+  while (i + 1 >= values_.size())
     values_.emplace_back();
   return values_[i];
 }
