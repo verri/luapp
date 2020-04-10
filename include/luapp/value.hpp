@@ -151,6 +151,8 @@ public:
       as_variant());
   }
 
+  auto operator[](const value&) const -> value;
+
 private:
   static auto from_ref(const reference&) -> variant;
   auto push(lua_State*) const -> int;

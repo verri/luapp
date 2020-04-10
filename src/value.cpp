@@ -142,4 +142,13 @@ auto value::push(lua_State* state) const -> int
                     as_variant());
 }
 
+auto value::operator[](const value& key) const -> value
+{
+  // XXX: should userdata use operator[] too?
+  if (!is_table())
+    throw std::runtime_error{"indexing an invalid value"};
+
+  return std::get<table>(as_variant()).get(key);
+}
+
 } // namespace lua
