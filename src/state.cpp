@@ -53,6 +53,8 @@ auto state::do_string(const char* code) const -> tuple
   COOL_DEFER(lua_pop(state, n));
 
   tuple result;
+  result.resize(n);
+
   for (const auto i : cool::closed_indices(1, n))
     result[i] = value::at(state_, last_top + i);
   return result;

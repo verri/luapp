@@ -50,6 +50,7 @@ public:
   }
 
   auto size() const noexcept -> std::size_t;
+  auto resize(std::size_t) -> void;
 
   operator const value&() const noexcept;
 
