@@ -57,7 +57,7 @@ TEST_CASE("Functions", "[value]")
     function f = +[](value a, value b, value c) { return tuple{(bool)a, (bool)b, (bool)c}; };
 
     {
-      const auto [a, b, c] = f().expand(nrets<3>);
+      const auto [a, b, c] = f().expand(returns<3>);
       CHECK(!a);
       CHECK(!b);
       CHECK(!c);
@@ -65,7 +65,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       // missing arguments are nil
-      const auto [a, b, c] = f(1.0, 2.0).expand(nrets<3>);
+      const auto [a, b, c] = f(1.0, 2.0).expand(returns<3>);
       CHECK(a);
       CHECK(b);
       CHECK(!c);
@@ -73,7 +73,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       // extra returns are nil
-      const auto [a, b, c, d] = f(nrets<4>, 1.0, nil{}, 2.0);
+      const auto [a, b, c, d] = f(returns<4>, 1.0, nil{}, 2.0);
       CHECK(a);
       CHECK(!b);
       CHECK(c);
@@ -82,7 +82,7 @@ TEST_CASE("Functions", "[value]")
     }
 
     {
-      const auto [a, b, c] = f(nrets<3>, false, integer{0}, floating{0});
+      const auto [a, b, c] = f(returns<3>, false, integer{0}, floating{0});
       CHECK(!a);
       CHECK(b);
       CHECK(c);
@@ -95,9 +95,9 @@ TEST_CASE("Functions", "[value]")
     CHECK(f(1.0, 2.0, 3.0).size() == 0);
   }
 
-  // if the number of arguments cannot be deduced, use nargs.
+  // if the number of arguments cannot be deduced, use args.
   {
-    function f(nargs<2>, [](value, value) { return "hello"; });
+    function f(args<2>, [](value, value) { return "hello"; });
     value a = f();
     CHECK(a.is_string());
   }
@@ -113,7 +113,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       const auto udata = userdata(std::in_place_type<custom_type>);
-      const auto [a, b, c] = f(nrets<3>, udata, 1.0, integer{1});
+      const auto [a, b, c] = f(returns<3>, udata, 1.0, integer{1});
       CHECK(a);
       CHECK(b);
       CHECK(!c);
@@ -121,17 +121,25 @@ TEST_CASE("Functions", "[value]")
 
     {
       const auto udata = std::make_shared<custom_type>();
-      const auto [a, b, c] = f(nrets<3>, udata);
+      const auto [a, b, c] = f(returns<3>, udata);
       CHECK(a);
       CHECK(!b);
       CHECK(!c);
     }
 
     {
-      const auto [a, b, c] = f(nrets<3>, 1.0, "wrong type", 1.0);
+      const auto [a, b, c] = f(returns<3>, 1.0, "wrong type", 1.0);
       CHECK(!a);
       CHECK(!b);
       CHECK(c);
+    }
+
+    {
+      // integers are automatically converted to a valid std::optional<floating>
+      const auto [a, b, c] = f(returns<3>, nil{}, integer{1}, integer{2});
+      CHECK(!a);
+      CHECK(b);
+      CHECK(!c);
     }
 
     {

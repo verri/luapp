@@ -121,28 +121,28 @@ auto value::get_table_or(table value) const noexcept -> table
 value::operator std::optional<string>() const
 {
   if (is<string>())
-    return std::get<string>(*this);
+    return std::get<string>(as_variant());
   return std::nullopt;
 }
 
 value::operator std::optional<function>() const noexcept
 {
   if (is<function>())
-    return std::get<function>(*this);
+    return std::get<function>(as_variant());
   return std::nullopt;
 }
 
 value::operator std::optional<userdata>() const
 {
   if (is<userdata>())
-    return std::get<userdata>(*this);
+    return std::get<userdata>(as_variant());
   return std::nullopt;
 }
 
 value::operator std::optional<table>() const noexcept
 {
   if (is<table>())
-    return std::get<table>(*this);
+    return std::get<table>(as_variant());
   return std::nullopt;
 }
 

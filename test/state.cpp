@@ -25,7 +25,7 @@ TEST_CASE("Basic state manipulation", "[state]")
     const auto result = s.do_string(R"(return 1, 1.0, "1")");
     REQUIRE(result.size() == 3);
 
-    const auto [a, b, c] = result.expand(nargs<3>);
+    const auto [a, b, c] = result.expand(args<3>);
     CHECK(a.is_integer());
     CHECK(b.is_floating());
     CHECK(c.is_string());

@@ -85,6 +85,13 @@ public:
     return get_or<boolean>(value);
   }
 
+  constexpr auto get_number_or(floating value) const noexcept -> floating
+  {
+    if (is<integer>())
+      return std::get<integer>(as_variant());
+    return get_or<floating>(value);
+  }
+
   constexpr auto get_floating_or(floating value) const noexcept -> floating
   {
     return get_or<floating>(value);
@@ -103,21 +110,23 @@ public:
   constexpr operator std::optional<boolean>() const noexcept
   {
     if (is<boolean>())
-      return std::get<boolean>(*this);
+      return std::get<boolean>(as_variant());
     return std::nullopt;
   }
 
   constexpr operator std::optional<floating>() const noexcept
   {
     if (is<floating>())
-      return std::get<floating>(*this);
+      return std::get<floating>(as_variant());
+    if (is<integer>())
+      return std::get<integer>(as_variant());
     return std::nullopt;
   }
 
   constexpr operator std::optional<integer>() const noexcept
   {
     if (is<integer>())
-      return std::get<integer>(*this);
+      return std::get<integer>(as_variant());
     return std::nullopt;
   }
 
