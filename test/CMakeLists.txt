@@ -15,6 +15,7 @@ endif()
 
 set(source_files
   test_suite.cpp
+  state.cpp
   value.cpp)
 
 add_executable(luapp_test_suite ${source_files})

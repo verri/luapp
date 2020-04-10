@@ -2,7 +2,6 @@
 #define LUAPP_TABLE_HPP_INCLUDED
 
 #include <memory>
-#include <optional>
 
 extern "C" {
 #include <lua.h>
@@ -22,9 +21,6 @@ class table
   friend class value;
 
 public:
-  auto get(std::string_view) const -> reference;
-  auto set(std::string_view, const value&) -> void;
-
   auto get(const value&) const -> reference;
   auto set(const value&, const value&) -> void;
 
