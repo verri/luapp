@@ -3,6 +3,7 @@
 
 #include <any>
 #include <string>
+#include <type_traits>
 
 extern "C" {
 #include <lua.h>
@@ -54,16 +55,23 @@ class userdata
 public:
   userdata() noexcept = default;
 
-  template <typename T> userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr)) {}
+  template <typename T> userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr))
+  {
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+  }
 
   template <typename T>
   explicit userdata(T value) : data_(std::make_any<std::shared_ptr<T>>(new T(std::move(value))))
-  {}
+  {
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+  }
 
   template <typename T, typename... Args>
   explicit userdata(std::in_place_type_t<T>, Args&&... args)
     : data_(std::make_shared<T>(std::forward<Args>(args)...))
-  {}
+  {
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+  }
 
   userdata(const userdata&) = default;
   userdata(userdata&&) noexcept = default;
@@ -73,7 +81,7 @@ public:
 
   template <typename T> auto cast() const noexcept -> std::shared_ptr<T>
   {
-    if (const auto* p = std::any_cast<std::shared_ptr<T>>(&data_); p)
+    if (const auto* p = std::any_cast<std::shared_ptr<std::decay_t<T>>>(&data_); p)
       return *p;
     return nullptr;
   }

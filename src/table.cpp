@@ -31,7 +31,7 @@ auto table::get(std::string_view key) const -> reference
   return reference(ref_.sstate(), luaL_ref(state, LUA_REGISTRYINDEX));
 }
 
-auto table::set(std::string_view key, const value& value) const -> void
+auto table::set(std::string_view key, const value& value) -> void
 {
   const auto state = ref_.state();
   if (!lua_checkstack(state, 3))
@@ -60,7 +60,7 @@ auto table::get(const value& key) const -> reference
   return reference(ref_.sstate(), luaL_ref(state, LUA_REGISTRYINDEX));
 }
 
-auto table::set(const value& key, const value& value) const -> void
+auto table::set(const value& key, const value& value) -> void
 {
   const auto state = ref_.state();
   if (!lua_checkstack(state, 3))

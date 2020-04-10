@@ -83,10 +83,12 @@ public:
   {
     return get_or<boolean>(value);
   }
+
   constexpr auto get_floating_or(floating value) const noexcept -> floating
   {
     return get_or<floating>(value);
   }
+
   constexpr auto get_integer_or(integer value) const noexcept -> integer
   {
     return get_or<integer>(value);

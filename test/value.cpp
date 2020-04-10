@@ -46,6 +46,7 @@ TEST_CASE("Basic value manipulation", "[value]")
   const value g = userdata(std::in_place_type<custom_type>);
   CHECK(g.is_userdata());
   CHECK(static_cast<std::shared_ptr<custom_type>>(g));
+  CHECK(static_cast<std::shared_ptr<const custom_type>>(g));
 }
 
 TEST_CASE("Functions", "[value]")
@@ -105,7 +106,7 @@ TEST_CASE("Functions", "[value]")
     struct custom_type
     {};
 
-    function f = +[](std::shared_ptr<custom_type> a, std::optional<floating> b,
+    function f = +[](std::shared_ptr<const custom_type> a, std::optional<floating> b,
                      std::variant<nil, integer, floating> c) {
       return tuple{(bool)a, (bool)b, std::holds_alternative<floating>(c)};
     };

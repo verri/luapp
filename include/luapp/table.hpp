@@ -23,10 +23,10 @@ class table
 
 public:
   auto get(std::string_view) const -> reference;
-  auto set(std::string_view, const value&) const -> void;
+  auto set(std::string_view, const value&) -> void;
 
   auto get(const value&) const -> reference;
-  auto set(const value&, const value&) const -> void;
+  auto set(const value&, const value&) -> void;
 
 private:
   explicit table(reference) noexcept;
