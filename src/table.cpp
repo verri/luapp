@@ -50,7 +50,7 @@ auto table::push(lua_State* state) const -> int
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  ref_.push();
+  ref_.push(state);
   return LUA_TTABLE;
 }
 

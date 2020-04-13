@@ -55,12 +55,14 @@ public:
   template <typename T> userdata(std::shared_ptr<T> ptr) noexcept : data_(std::move(ptr))
   {
     static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
   }
 
   template <typename T>
   explicit userdata(T value) : data_(std::make_any<std::shared_ptr<T>>(new T(std::move(value))))
   {
     static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
   }
 
   template <typename T, typename... Args>
@@ -68,6 +70,7 @@ public:
     : data_(std::make_shared<T>(std::forward<Args>(args)...))
   {
     static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
   }
 
   userdata(const userdata&) = default;
@@ -78,15 +81,19 @@ public:
 
   template <typename T> auto cast() const noexcept -> std::shared_ptr<T>
   {
+    static_assert(!std::is_same_v<T, void>);
     if (const auto* p = std::any_cast<std::shared_ptr<std::decay_t<T>>>(&data_); p)
       return *p;
     return nullptr;
   }
 
 private:
+  userdata(std::any, reference) noexcept;
+
   auto push(lua_State*) const -> int;
 
   std::any data_;
+  reference metatable_;
 };
 
 } // namespace lua

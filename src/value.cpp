@@ -36,12 +36,11 @@ auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
   switch (type) {
   case LUA_TTABLE:
     return table(std::move(ref));
-  case LUA_TFUNCTION:
-    // TODO...
   case LUA_TUSERDATA:
-    // TODO...
-  case LUA_TLIGHTUSERDATA: // XXX:
-  case LUA_TTHREAD:        // XXX:
+  case LUA_TFUNCTION:
+  case LUA_TLIGHTUSERDATA:
+  case LUA_TTHREAD:
+    throw std::runtime_error{"invalid type"};
   case LUA_TNIL:
   default:
     return nil{};
@@ -55,7 +54,7 @@ auto value::from_ref(const reference& ref) -> variant
 
   const auto state = ref.state();
 
-  const auto type = ref.push();
+  const auto type = ref.push(state);
   COOL_DEFER(lua_pop(state, 1));
 
   switch (type) {
@@ -70,12 +69,11 @@ auto value::from_ref(const reference& ref) -> variant
     return string{lua_tostring(state, -1)};
   case LUA_TTABLE:
     return table(ref);
-  case LUA_TFUNCTION:
-    // TODO...
   case LUA_TUSERDATA:
-    // TODO...
-  case LUA_TLIGHTUSERDATA: // XXX:
-  case LUA_TTHREAD:        // XXX:
+  case LUA_TFUNCTION:
+  case LUA_TLIGHTUSERDATA:
+  case LUA_TTHREAD:
+    throw std::runtime_error{"invalid type"};
   case LUA_TNIL:
   default:
     return nil{};

@@ -2,11 +2,13 @@
 #define LUAPP_STATE_HPP_INCLUDED
 
 #include <memory>
+#include <typeindex>
 
 extern "C" {
 #include <lua.h>
 }
 
+#include <luapp/reference.hpp>
 #include <luapp/table.hpp>
 #include <luapp/type.hpp>
 
@@ -35,6 +37,7 @@ public:
 
 private:
   std::shared_ptr<lua_State> state_;
+  std::shared_ptr<std::unordered_map<std::type_index, reference>> metatables_;
 };
 
 } // namespace lua

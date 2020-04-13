@@ -23,9 +23,9 @@ auto reference::valid() const noexcept -> bool { return state_ && ref_ != LUA_NO
 
 reference::operator bool() const noexcept { return valid(); }
 
-auto reference::push() const -> int
+auto reference::push(lua_State* state) const -> int
 {
-  assert(state_);
+  assert(state_.get() == state);
 
   if (!lua_checkstack(state_.get(), 1))
     throw std::bad_alloc{};
