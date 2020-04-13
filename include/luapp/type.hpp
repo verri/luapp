@@ -88,12 +88,12 @@ public:
   }
 
 private:
-  userdata(std::any, reference) noexcept;
+  userdata(std::any, table) noexcept;
 
   auto push(lua_State*) const -> int;
 
   std::any data_;
-  reference metatable_;
+  std::optional<table> metatable_;
 };
 
 } // namespace lua

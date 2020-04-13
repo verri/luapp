@@ -164,6 +164,9 @@ public:
 private:
   static auto at(std::shared_ptr<lua_State>, int) -> value;
   static auto from_ref(const reference&) -> variant;
+
+  static auto checkudata(reference) -> value;
+
   auto push(lua_State*) const -> int;
 };
 

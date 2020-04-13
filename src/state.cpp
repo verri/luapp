@@ -40,10 +40,15 @@ state::state(options opt)
   const auto state = state_.get();
 
   lua_createtable(state, 0, 1);
+
   lua_pushstring(state, "__gc");
   lua_pushcfunction(state, &free_userdata);
-
   lua_rawset(state, -3);
+
+  lua_pushstring(state, "__luapp");
+  lua_pushboolean(state, true);
+  lua_rawset(state, -3);
+
   reference ref(state_);
 
   (*metatables_)[typeid(void)] = std::move(ref);

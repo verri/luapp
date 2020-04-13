@@ -13,6 +13,26 @@ extern "C" {
 namespace lua
 {
 
+auto value::checkudata(reference ref) -> value
+{
+  const auto state = ref.state();
+
+  ref.push(state);
+  COOL_DEFER(lua_pop(state, 1));
+
+  if (!lua_getmetatable(state, -1))
+    return nil{};
+
+  reference metaref(ref.sstate());
+  table metatable(std::move(metaref));
+
+  if (!get(metatable, "__luapp").get_boolean_or(false))
+    return nil{};
+
+  return userdata(*reinterpret_cast<const std::any*>(lua_touserdata(state, -1)),
+                  std::move(metatable));
+}
+
 auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
 {
   const auto state = sstate.get();
@@ -37,6 +57,7 @@ auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
   case LUA_TTABLE:
     return table(std::move(ref));
   case LUA_TUSERDATA:
+    return checkudata(std::move(ref));
   case LUA_TFUNCTION:
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
@@ -70,6 +91,7 @@ auto value::from_ref(const reference& ref) -> variant
   case LUA_TTABLE:
     return table(ref);
   case LUA_TUSERDATA:
+    return checkudata(ref);
   case LUA_TFUNCTION:
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
