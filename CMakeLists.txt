@@ -11,6 +11,7 @@ add_library(luapp
   src/table.cpp
   src/tuple.cpp
   src/type.cpp
+  src/userdata.cpp
   src/value.cpp
   include/luapp/function.hpp
   include/luapp/reference.hpp
@@ -18,6 +19,7 @@ add_library(luapp
   include/luapp/table.hpp
   include/luapp/tuple.hpp
   include/luapp/type.hpp
+  include/luapp/userdata.hpp
   include/luapp/value.hpp)
 
 target_compile_features(luapp PUBLIC cxx_std_17)

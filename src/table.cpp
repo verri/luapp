@@ -6,6 +6,7 @@ extern "C" {
 }
 
 #include <cool/defer.hpp>
+#include <luapp/state.hpp>
 #include <luapp/table.hpp>
 #include <luapp/value.hpp>
 
@@ -16,41 +17,46 @@ table::table(reference ref) noexcept : ref_(std::move(ref)) {}
 
 auto table::get(const value& key) const -> reference
 {
-  const auto state = ref_.state();
+  const auto state_data = ref_.state();
+  const auto state = state_data->state;
+
   if (!lua_checkstack(state, 2))
     throw std::bad_alloc{};
 
-  push(state);
+  push(state_data);
   COOL_DEFER(lua_pop(state, 1));
 
-  key.push(state);
+  key.push(state_data);
   lua_gettable(state, -2);
 
-  reference result{ref_.sstate()};
-  return result;
+  return reference(state_data, luaL_ref(state, LUA_REGISTRYINDEX));
 }
 
 auto table::set(const value& key, const value& value) const -> void
 {
-  const auto state = ref_.state();
+  const auto state_data = ref_.state();
+  const auto state = state_data->state;
+
   if (!lua_checkstack(state, 3))
     throw std::bad_alloc{};
 
-  push(state);
+  push(state_data);
   COOL_DEFER(lua_pop(state, 1));
 
-  key.push(state);
-  value.push(state);
+  key.push(state_data);
+  value.push(state_data);
   lua_settable(state, -3);
 }
 
-auto table::push(lua_State* state) const -> int
+auto table::push(std::shared_ptr<state_data> state_data) const -> int
 {
-  assert(state == ref_.state());
+  assert(state_data == ref_.state());
+  const auto state = state_data->state;
+
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  ref_.push(state);
+  ref_.push(state_data);
   return LUA_TTABLE;
 }
 

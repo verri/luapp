@@ -13,15 +13,25 @@ namespace lua
 class table;
 class value;
 class state;
+class userdata;
+
+struct state_data;
+
+struct reference_data
+{
+  std::weak_ptr<state_data> sdata;
+  int index;
+};
 
 class reference
 {
   friend class table;
   friend class value;
   friend class state;
+  friend class userdata;
 
 public:
-  reference() noexcept;
+  reference() noexcept = default;
 
   reference(const reference&) noexcept = default;
   reference(reference&) noexcept = default;
@@ -33,16 +43,12 @@ public:
   operator bool() const noexcept;
 
 private:
-  explicit reference(std::shared_ptr<lua_State>);
+  reference(std::shared_ptr<state_data>, int);
 
-  auto push(lua_State*) const -> int;
-  auto state() const noexcept -> lua_State*;
-  auto sstate() const noexcept -> std::shared_ptr<lua_State>;
+  auto push(std::shared_ptr<state_data>) const -> int;
+  auto state() const -> std::shared_ptr<state_data>;
 
-  std::shared_ptr<lua_State> state_;
-  int ref_;
-
-  std::shared_ptr<void> deleter_;
+  std::shared_ptr<reference_data> data_;
 };
 
 } // namespace lua

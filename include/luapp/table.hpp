@@ -35,7 +35,7 @@ private:
   auto get(const value&) const -> reference;
   auto set(const value&, const value&) const -> void;
 
-  auto push(lua_State*) const -> int;
+  auto push(std::shared_ptr<state_data>) const -> int;
 
   auto as_value() -> const value&;
 

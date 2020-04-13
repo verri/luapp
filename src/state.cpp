@@ -1,3 +1,4 @@
+#include <memory>
 #include <new>
 #include <stdexcept>
 #include <unordered_map>
@@ -28,16 +29,19 @@ namespace lua
 {
 
 state::state(options opt)
-  : state_{luaL_newstate(), lua_close},
-    metatables_(std::make_shared<std::unordered_map<std::type_index, reference>>())
+  : data_(
+      new state_data{luaL_newstate(), {}}, +[](state_data* data) {
+        lua_close(data->state);
+        delete data;
+      })
 {
-  if (!state_)
+  if (!data_ || !data_->state)
     throw std::bad_alloc{};
 
-  if (opt & options::std_libs)
-    luaL_openlibs(state_.get());
+  const auto state = data_->state;
 
-  const auto state = state_.get();
+  if (opt & options::std_libs)
+    luaL_openlibs(state);
 
   lua_createtable(state, 0, 1);
 
@@ -49,28 +53,30 @@ state::state(options opt)
   lua_pushboolean(state, true);
   lua_rawset(state, -3);
 
-  reference ref(state_);
+  reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
 
-  (*metatables_)[typeid(void)] = std::move(ref);
+  data_->metatables.insert_or_assign(typeid(void), std::move(ref));
 }
 
 auto state::global_table() const -> table
 {
-  if (!lua_checkstack(state_.get(), 1))
+  const auto state = data_->state;
+
+  if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  lua_pushglobaltable(state_.get());
-  reference ref{state_};
+  lua_pushglobaltable(state);
+  reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
 
   return table(std::move(ref));
 }
 
 auto state::do_string(const char* code) const -> tuple
 {
-  if (!lua_checkstack(state_.get(), 1))
+  const auto state = data_->state;
+  if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  const auto state = state_.get();
   const auto last_top = lua_gettop(state);
 
   if (luaL_loadstring(state, code) || lua_pcall(state, 0, LUA_MULTRET, 0)) {
@@ -86,9 +92,17 @@ auto state::do_string(const char* code) const -> tuple
   result.resize(n);
 
   for (const auto i : cool::closed_indices(1, n))
-    result[i - 1] = value::at(state_, last_top + i);
+    result[i - 1] = value::at(data_, last_top + i);
 
   return result;
+}
+
+auto state::get_metatable(std::type_index key) const -> const reference&
+{
+  const auto& mt = data_->metatables;
+
+  const auto it = mt.find(key);
+  return it != mt.end() ? it->second : mt.at(typeid(void));
 }
 
 } // namespace lua

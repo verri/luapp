@@ -6,35 +6,42 @@ extern "C" {
 }
 
 #include <luapp/reference.hpp>
+#include <luapp/state.hpp>
 
 namespace lua
 {
 
-reference::reference() noexcept : ref_{LUA_NOREF} {}
+reference::reference(std::shared_ptr<state_data> state_data, int index)
+  : data_(
+      new reference_data{state_data, index}, +[](reference_data* d) {
+        if (const auto state_data = d->sdata.lock())
+          luaL_unref(state_data->state, LUA_REGISTRYINDEX, d->index);
+        delete d;
+      })
+{
+  if (!data_)
+    throw std::bad_alloc{};
+}
 
-reference::reference(std::shared_ptr<lua_State> state)
-  : state_{std::move(state)},
-    ref_{luaL_ref(state_.get(), LUA_REGISTRYINDEX)},
-    deleter_(nullptr,
-             [state = state_.get(), r = ref_](auto) { luaL_unref(state, LUA_REGISTRYINDEX, r); })
-{}
-
-auto reference::valid() const noexcept -> bool { return state_ && ref_ != LUA_NOREF; }
+auto reference::valid() const noexcept -> bool
+{
+  return data_ && !data_->sdata.expired() && data_->index != LUA_NOREF;
+}
 
 reference::operator bool() const noexcept { return valid(); }
 
-auto reference::push(lua_State* state) const -> int
+auto reference::push(std::shared_ptr<state_data> s) const -> int
 {
-  assert(state_.get() == state);
+  const auto state_data = data_->sdata.lock();
+  const auto state = state_data->state;
+  assert(state == s->state);
 
-  if (!lua_checkstack(state_.get(), 1))
+  if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  return lua_rawgeti(state_.get(), LUA_REGISTRYINDEX, ref_);
+  return lua_rawgeti(state, LUA_REGISTRYINDEX, data_->index);
 }
 
-auto reference::state() const noexcept -> lua_State* { return state_.get(); }
-
-auto reference::sstate() const noexcept -> std::shared_ptr<lua_State> { return state_; }
+auto reference::state() const -> std::shared_ptr<state_data> { return data_->sdata.lock(); }
 
 } // namespace lua

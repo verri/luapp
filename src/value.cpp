@@ -8,56 +8,56 @@ extern "C" {
 #include <cool/compose.hpp>
 #include <cool/defer.hpp>
 #include <luapp/reference.hpp>
+#include <luapp/state.hpp>
 #include <luapp/value.hpp>
 
 namespace lua
 {
 
-auto value::checkudata(reference ref) -> value
+auto value::checkudata(std::shared_ptr<state_data> state_data, reference ref) -> value
 {
-  const auto state = ref.state();
+  const auto state = state_data->state;
 
-  ref.push(state);
+  ref.push(state_data);
   COOL_DEFER(lua_pop(state, 1));
 
   if (!lua_getmetatable(state, -1))
     return nil{};
 
-  reference metaref(ref.sstate());
-  table metatable(std::move(metaref));
+  reference metaref(state_data, luaL_ref(state, LUA_REGISTRYINDEX));
+  table metatable(metaref);
 
   if (!get(metatable, "__luapp").get_boolean_or(false))
     return nil{};
 
-  return userdata(*reinterpret_cast<const std::any*>(lua_touserdata(state, -1)),
-                  std::move(metatable));
+  return userdata(*reinterpret_cast<const std::any*>(lua_touserdata(state, -1)), metaref);
 }
 
-auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
+auto value::at(std::shared_ptr<state_data> state_data, int index) -> value
 {
-  const auto state = sstate.get();
-  const auto type = lua_type(state, i);
+  const auto state = state_data->state;
+  const auto type = lua_type(state, index);
 
   switch (type) {
   case LUA_TNUMBER:
-    if (lua_isinteger(state, i))
-      return integer{lua_tointeger(state, i)};
+    if (lua_isinteger(state, index))
+      return integer{lua_tointeger(state, index)};
     else
-      return floating{lua_tonumber(state, i)};
+      return floating{lua_tonumber(state, index)};
   case LUA_TBOOLEAN:
-    return boolean{static_cast<bool>(lua_toboolean(state, i))};
+    return boolean{static_cast<bool>(lua_toboolean(state, index))};
   case LUA_TSTRING:
-    return string{lua_tostring(state, i)};
+    return string{lua_tostring(state, index)};
   }
 
-  lua_pushvalue(state, i);
-  reference ref{std::move(sstate)};
+  lua_pushvalue(state, index);
+  reference ref(state_data, luaL_ref(state, LUA_REGISTRYINDEX));
 
   switch (type) {
   case LUA_TTABLE:
     return table(std::move(ref));
   case LUA_TUSERDATA:
-    return checkudata(std::move(ref));
+    return checkudata(std::move(state_data), std::move(ref));
   case LUA_TFUNCTION:
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
@@ -68,14 +68,14 @@ auto value::at(std::shared_ptr<lua_State> sstate, int i) -> value
   }
 }
 
-auto value::from_ref(const reference& ref) -> variant
+auto value::from_ref(std::shared_ptr<state_data> state_data, const reference& ref) -> variant
 {
   if (!ref.valid())
     return nil{};
 
-  const auto state = ref.state();
+  const auto state = state_data->state;
 
-  const auto type = ref.push(state);
+  const auto type = ref.push(state_data);
   COOL_DEFER(lua_pop(state, 1));
 
   switch (type) {
@@ -91,7 +91,7 @@ auto value::from_ref(const reference& ref) -> variant
   case LUA_TTABLE:
     return table(ref);
   case LUA_TUSERDATA:
-    return checkudata(ref);
+    return checkudata(std::move(state_data), ref);
   case LUA_TFUNCTION:
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
@@ -102,7 +102,7 @@ auto value::from_ref(const reference& ref) -> variant
   }
 }
 
-value::value(const reference& ref) : variant{from_ref(ref)} {}
+value::value(const reference& ref) : variant{from_ref(ref.state(), ref)} {}
 
 template <typename T>
 auto from_optional(std::optional<T> v)
@@ -166,8 +166,9 @@ value::operator std::optional<table>() const noexcept
   return std::nullopt;
 }
 
-auto value::push(lua_State* state) const -> int
+auto value::push(std::shared_ptr<state_data> state_data) const -> int
 {
+  const auto state = state_data->state;
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
@@ -192,7 +193,7 @@ auto value::push(lua_State* state) const -> int
                         lua_pushlstring(state, s.data(), s.size());
                         return LUA_TSTRING;
                       },
-                      [state](const auto& other) -> int { return other.push(state); },
+                      [&](const auto& other) -> int { return other.push(state_data); },
                     },
                     as_variant());
 }

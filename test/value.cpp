@@ -1,5 +1,6 @@
 #include <catch.hpp>
 
+#include <luapp/state.hpp>
 #include <luapp/value.hpp>
 #include <utility>
 #include <variant>
@@ -43,7 +44,10 @@ TEST_CASE("Basic value manipulation", "[value]")
   struct custom_type
   {};
 
-  const value g = userdata(std::in_place_type<custom_type>);
+  state s;
+
+  // userdata and table are always associated to a Lua state.
+  const value g = userdata(s, std::in_place_type<custom_type>);
   CHECK(g.is_userdata());
   CHECK(static_cast<std::shared_ptr<custom_type>>(g));
   CHECK(static_cast<std::shared_ptr<const custom_type>>(g));
@@ -111,8 +115,9 @@ TEST_CASE("Functions", "[value]")
       return tuple{(bool)a, (bool)b, std::holds_alternative<floating>(c)};
     };
 
+    state s;
     {
-      const auto udata = userdata(std::in_place_type<custom_type>);
+      const auto udata = userdata(s, std::in_place_type<custom_type>);
       const auto [a, b, c] = f(returns<3>, udata, 1.0, integer{1});
       CHECK(a);
       CHECK(b);
@@ -121,7 +126,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       const auto udata = std::make_shared<custom_type>();
-      const auto [a, b, c] = f(returns<3>, udata);
+      const auto [a, b, c] = f(returns<3>, userdata(s, udata));
       CHECK(a);
       CHECK(!b);
       CHECK(!c);

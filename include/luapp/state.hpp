@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <typeindex>
+#include <unordered_map>
 
 extern "C" {
 #include <lua.h>
@@ -10,13 +11,23 @@ extern "C" {
 
 #include <luapp/reference.hpp>
 #include <luapp/table.hpp>
-#include <luapp/type.hpp>
+#include <luapp/tuple.hpp>
 
 namespace lua
 {
 
+struct state_data
+{
+  lua_State* state;
+  std::unordered_map<std::type_index, reference> metatables;
+};
+
+class userdata;
+
 class state
 {
+  friend class userdata;
+
 public:
   enum options : unsigned {
     std_libs = 1,
@@ -36,8 +47,9 @@ public:
   auto do_string(const char*) const -> tuple;
 
 private:
-  std::shared_ptr<lua_State> state_;
-  std::shared_ptr<std::unordered_map<std::type_index, reference>> metatables_;
+  auto get_metatable(std::type_index) const -> const reference&;
+
+  std::shared_ptr<state_data> data_;
 };
 
 } // namespace lua

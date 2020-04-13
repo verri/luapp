@@ -12,6 +12,9 @@ function::function(std::function<tuple(tuple)> f) noexcept
 
 auto function::call(tuple t) const -> tuple { return (*f_)(std::move(t)); }
 
-auto function::push(lua_State*) const -> int { throw std::runtime_error{"not yet implemented"}; }
+auto function::push(std::shared_ptr<state_data>) const -> int
+{
+  throw std::runtime_error{"not yet implemented"};
+}
 
 } // namespace lua

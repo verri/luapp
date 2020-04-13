@@ -14,6 +14,8 @@ extern "C" {
 namespace lua
 {
 
+struct state_data;
+
 class function
 {
   friend class value;
@@ -60,7 +62,7 @@ public:
   }
 
 private:
-  auto push(lua_State*) const -> int;
+  auto push(std::shared_ptr<state_data>) const -> int;
 
   std::shared_ptr<std::function<tuple(tuple)>> f_;
 };
