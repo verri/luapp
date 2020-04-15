@@ -26,21 +26,21 @@ auto function::push(std::shared_ptr<state_data> sdata, lua_State* state) const -
 {
   if (ref_)
     return ref_->push(std::move(sdata), state);
-  throw std::runtime_error{"not yet implemented"};
 
   using fn_t = std::shared_ptr<std::function<tuple(tuple)>>;
-
   {
     auto* p = lua_newuserdata(state, sizeof(fn_t));
     new (p) fn_t(f_);
+    sdata->metatables.at(typeid(fn_t)).push(sdata, state);
+    lua_setmetatable(state, -2);
   }
 
-  sdata->metatables.at(typeid(fn_t)).push(sdata, state);
-  lua_setmetatable(state, -2);
-
+  using weak_state = std::weak_ptr<state_data>;
   {
-    auto* p = lua_newuserdata(state, sizeof(std::shared_ptr<state_data>));
-    new (p) std::shared_ptr<state_data>(sdata);
+    auto* p = lua_newuserdata(state, sizeof(weak_state));
+    new (p) weak_state(sdata);
+    sdata->metatables.at(typeid(weak_state)).push(sdata, state);
+    lua_setmetatable(state, -2);
   }
 
   lua_pushcclosure(
@@ -48,7 +48,10 @@ auto function::push(std::shared_ptr<state_data> sdata, lua_State* state) const -
     +[](lua_State* state) -> int {
       const auto f = *reinterpret_cast<fn_t*>(lua_touserdata(state, lua_upvalueindex(1)));
       const auto sdata =
-        *reinterpret_cast<std::shared_ptr<state_data>*>(lua_touserdata(state, lua_upvalueindex(2)));
+        reinterpret_cast<weak_state*>(lua_touserdata(state, lua_upvalueindex(2)))->lock();
+
+      if (!f || !sdata)
+        return 0;
 
       const auto nargs = lua_gettop(state);
 

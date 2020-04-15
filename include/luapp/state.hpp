@@ -2,6 +2,7 @@
 #define LUAPP_STATE_HPP_INCLUDED
 
 #include <memory>
+#include <type_traits>
 #include <typeindex>
 #include <unordered_map>
 
@@ -45,6 +46,12 @@ public:
   auto global_table() const -> table;
 
   auto do_string(const char*) const -> tuple;
+
+  template <std::size_t N>
+  auto do_string(std::integral_constant<std::size_t, N> nrets, const char* code) const
+  {
+    return do_string(code).expand(nrets);
+  }
 
 private:
   auto get_metatable(std::type_index) const -> const reference&;
