@@ -8,6 +8,7 @@ extern "C" {
 #include <lua.h>
 }
 
+#include <luapp/reference.hpp>
 #include <luapp/tuple.hpp>
 #include <type_traits>
 
@@ -41,10 +42,10 @@ public:
     static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
   }
 
-  function(const function&) noexcept = default;
+  function(const function&) = default;
   function(function&&) noexcept = default;
 
-  auto operator=(const function&) noexcept -> function& = default;
+  auto operator=(const function&) -> function& = default;
   auto operator=(function&&) noexcept -> function& = default;
 
   auto call(tuple) const -> tuple;
@@ -63,8 +64,10 @@ public:
 
 private:
   auto push(std::shared_ptr<state_data>) const -> int;
+  auto push(std::shared_ptr<state_data>, lua_State*) const -> int;
 
   std::shared_ptr<std::function<tuple(tuple)>> f_;
+  std::optional<reference> ref_;
 };
 
 } // namespace lua

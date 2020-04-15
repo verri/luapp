@@ -163,11 +163,13 @@ public:
 
 private:
   static auto at(std::shared_ptr<state_data>, int) -> value;
+  static auto at(std::shared_ptr<state_data>, lua_State*, int) -> value;
   static auto from_ref(std::shared_ptr<state_data>, const reference&) -> variant;
 
   static auto checkudata(std::shared_ptr<state_data>, reference) -> value;
 
   auto push(std::shared_ptr<state_data>) const -> int;
+  auto push(std::shared_ptr<state_data>, lua_State*) const -> int;
 };
 
 namespace detail

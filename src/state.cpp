@@ -12,18 +12,9 @@ extern "C" {
 #include <cool/defer.hpp>
 #include <cool/indices.hpp>
 #include <luapp/state.hpp>
+#include <luapp/tuple.hpp>
 #include <luapp/type.hpp>
 #include <luapp/value.hpp>
-
-namespace
-{
-static auto free_userdata(lua_State* state) -> int
-{
-  auto* p = reinterpret_cast<std::any*>(lua_touserdata(state, -1));
-  p->~any();
-  return 0;
-}
-} // namespace
 
 namespace lua
 {
@@ -46,16 +37,44 @@ state::state(options opt)
   lua_createtable(state, 0, 1);
 
   lua_pushstring(state, "__gc");
-  lua_pushcfunction(state, &free_userdata);
+  lua_pushcfunction(
+    state, +[](lua_State* state) -> int {
+      auto* p = reinterpret_cast<std::any*>(lua_touserdata(state, -1));
+      p->~any();
+      return 0;
+    });
   lua_rawset(state, -3);
 
   lua_pushstring(state, "__luapp");
   lua_pushboolean(state, true);
   lua_rawset(state, -3);
 
-  reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
+  {
+    reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
+    data_->metatables.insert_or_assign(typeid(void), std::move(ref));
+  }
 
-  data_->metatables.insert_or_assign(typeid(void), std::move(ref));
+  using fn_t = std::shared_ptr<std::function<tuple(tuple)>>;
+
+  lua_createtable(state, 0, 1);
+
+  lua_pushstring(state, "__gc");
+  lua_pushcfunction(
+    state, +[](lua_State* state) -> int {
+      auto* p = reinterpret_cast<fn_t*>(lua_touserdata(state, -1));
+      p->~fn_t();
+      return 0;
+    });
+  lua_rawset(state, -3);
+
+  lua_pushstring(state, "__luapp");
+  lua_pushboolean(state, true);
+  lua_rawset(state, -3);
+
+  {
+    reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
+    data_->metatables.insert_or_assign(typeid(fn_t), std::move(ref));
+  }
 }
 
 auto state::global_table() const -> table

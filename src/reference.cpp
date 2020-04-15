@@ -32,13 +32,16 @@ reference::operator bool() const noexcept { return valid(); }
 
 auto reference::push(std::shared_ptr<state_data> s) const -> int
 {
-  const auto state_data = data_->sdata.lock();
-  const auto state = state_data->state;
-  assert(state == s->state);
+  const auto state = s->state;
+  return push(std::move(s), state);
+}
 
+auto reference::push(std::shared_ptr<state_data> s, lua_State* state) const -> int
+{
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
+  // assumes that LUA_REGISTRYINDEX is shared
   return lua_rawgeti(state, LUA_REGISTRYINDEX, data_->index);
 }
 

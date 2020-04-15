@@ -60,6 +60,7 @@ private:
   userdata(std::any, const reference&) noexcept;
 
   auto push(std::shared_ptr<state_data>) const -> int;
+  auto push(std::shared_ptr<state_data>, lua_State*) const -> int;
 
   std::any data_;
   reference metatable_;

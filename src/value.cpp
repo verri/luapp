@@ -36,6 +36,11 @@ auto value::checkudata(std::shared_ptr<state_data> state_data, reference ref) ->
 auto value::at(std::shared_ptr<state_data> state_data, int index) -> value
 {
   const auto state = state_data->state;
+  return at(std::move(state_data), state, index);
+}
+
+auto value::at(std::shared_ptr<state_data> state_data, lua_State* state, int index) -> value
+{
   const auto type = lua_type(state, index);
 
   switch (type) {
@@ -50,6 +55,7 @@ auto value::at(std::shared_ptr<state_data> state_data, int index) -> value
     return string{lua_tostring(state, index)};
   }
 
+  // XXX: assumes LUA_REGISTRYINDEX is shared
   lua_pushvalue(state, index);
   reference ref(state_data, luaL_ref(state, LUA_REGISTRYINDEX));
 
@@ -169,6 +175,11 @@ value::operator std::optional<table>() const noexcept
 auto value::push(std::shared_ptr<state_data> state_data) const -> int
 {
   const auto state = state_data->state;
+  return push(std::move(state_data), state);
+}
+
+auto value::push(std::shared_ptr<state_data> state_data, lua_State* state) const -> int
+{
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
@@ -193,7 +204,7 @@ auto value::push(std::shared_ptr<state_data> state_data) const -> int
                         lua_pushlstring(state, s.data(), s.size());
                         return LUA_TSTRING;
                       },
-                      [&](const auto& other) -> int { return other.push(state_data); },
+                      [&](const auto& other) -> int { return other.push(state_data, state); },
                     },
                     as_variant());
 }

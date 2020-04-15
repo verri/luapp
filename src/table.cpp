@@ -50,13 +50,18 @@ auto table::set(const value& key, const value& value) const -> void
 
 auto table::push(std::shared_ptr<state_data> state_data) const -> int
 {
-  assert(state_data == ref_.state());
   const auto state = state_data->state;
+  return push(std::move(state_data), state);
+}
+
+auto table::push(std::shared_ptr<state_data> state_data, lua_State* state) const -> int
+{
+  assert(state_data == ref_.state());
 
   if (!lua_checkstack(state, 1))
     throw std::bad_alloc{};
 
-  ref_.push(state_data);
+  ref_.push(std::move(state_data), state);
   return LUA_TTABLE;
 }
 

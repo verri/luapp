@@ -10,11 +10,6 @@ extern "C" {
 namespace lua
 {
 
-class table;
-class value;
-class state;
-class userdata;
-
 struct state_data;
 
 struct reference_data
@@ -29,6 +24,7 @@ class reference
   friend class value;
   friend class state;
   friend class userdata;
+  friend class function;
 
 public:
   reference() noexcept = default;
@@ -46,6 +42,8 @@ private:
   reference(std::shared_ptr<state_data>, int);
 
   auto push(std::shared_ptr<state_data>) const -> int;
+  auto push(std::shared_ptr<state_data>, lua_State* state) const -> int;
+
   auto state() const -> std::shared_ptr<state_data>;
 
   std::shared_ptr<reference_data> data_;
