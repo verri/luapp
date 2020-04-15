@@ -28,7 +28,11 @@ auto tuple::at(std::size_t i) const noexcept -> const value&
 
 auto tuple::size() const noexcept -> std::size_t { return values_.size() - 1; }
 
-auto tuple::resize(std::size_t s) -> void { values_.resize(s + 1); }
+auto tuple::resize(std::size_t s) -> void
+{
+  values_.resize(s + 1);
+  values_.back() = nil{};
+}
 
 tuple::operator const value&() const noexcept { return values_.front(); }
 

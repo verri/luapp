@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <memory>
+#include <type_traits>
+#include <variant>
 
 extern "C" {
 #include <lua.h>
@@ -10,7 +12,6 @@ extern "C" {
 
 #include <luapp/reference.hpp>
 #include <luapp/tuple.hpp>
-#include <type_traits>
 
 namespace lua
 {
@@ -63,11 +64,12 @@ public:
   }
 
 private:
+  function(reference) noexcept;
+
   auto push(std::shared_ptr<state_data>) const -> int;
   auto push(std::shared_ptr<state_data>, lua_State*) const -> int;
 
-  std::shared_ptr<std::function<tuple(tuple)>> f_;
-  std::optional<reference> ref_;
+  std::variant<std::shared_ptr<std::function<tuple(tuple)>>, reference> f_;
 };
 
 } // namespace lua
