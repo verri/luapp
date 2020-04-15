@@ -67,8 +67,18 @@ auto table::push(std::shared_ptr<state_data> state_data, lua_State* state) const
 
 auto table::operator==(const table& other) const -> bool
 {
-  // TODO
-  return false;
+  const auto sdata = ref_.state();
+  assert(sdata == other.ref_.state());
+
+  const auto state = sdata->state;
+
+  push(sdata);
+  COOL_DEFER(lua_pop(state, 1));
+
+  other.push(sdata);
+  COOL_DEFER(lua_pop(state, 1));
+
+  return lua_compare(sdata->state, -1, -2, LUA_OPEQ);
 }
 
 auto table::operator!=(const table& other) const -> bool { return !(*this == other); }

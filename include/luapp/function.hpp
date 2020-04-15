@@ -63,7 +63,8 @@ public:
     return call(tuple{std::forward<Args>(args)...}).expand(ret);
   }
 
-  // XXX: Lua logic or shared_ptr logic? Other logic?
+  // because of the complexity of dealing with closures and stuff, they are always
+  // different from each other.  This behavior might change in future versions.
   auto operator==(const function&) const -> bool;
   auto operator!=(const function&) const -> bool;
 

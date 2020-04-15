@@ -1,3 +1,6 @@
+#include <cassert>
+
+#include <cool/defer.hpp>
 #include <luapp/state.hpp>
 #include <luapp/userdata.hpp>
 
@@ -31,8 +34,18 @@ auto userdata::push(std::shared_ptr<state_data> state_data, lua_State* state) co
 
 auto userdata::operator==(const userdata& other) const -> bool
 {
-  // TODO
-  return false;
+  const auto sdata = metatable_.state();
+  assert(sdata == other.metatable_.state());
+
+  const auto state = sdata->state;
+
+  push(sdata);
+  COOL_DEFER(lua_pop(state, 1));
+
+  other.push(sdata);
+  COOL_DEFER(lua_pop(state, 1));
+
+  return lua_compare(sdata->state, -1, -2, LUA_OPEQ);
 }
 
 auto userdata::operator!=(const userdata& other) const -> bool { return !(*this == other); }

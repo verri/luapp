@@ -55,7 +55,7 @@ public:
     return nullptr;
   }
 
-  // XXX: Lua logic or shared_ptr logic? Other logic?
+  // always consults the metatable.
   auto operator==(const userdata&) const -> bool;
   auto operator!=(const userdata&) const -> bool;
 

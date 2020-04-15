@@ -161,7 +161,6 @@ public:
       as_variant());
   }
 
-  // raw equal
   auto operator==(const value&) const -> bool;
   auto operator!=(const value&) const -> bool;
 

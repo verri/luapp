@@ -29,6 +29,7 @@ class table
   friend struct detail::setter;
 
 public:
+  // may consults metatable
   auto operator==(const table&) const -> bool;
   auto operator!=(const table&) const -> bool;
 
