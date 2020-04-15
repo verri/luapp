@@ -55,6 +55,10 @@ public:
     return nullptr;
   }
 
+  // XXX: Lua logic or shared_ptr logic? Other logic?
+  auto operator==(const userdata&) const -> bool;
+  auto operator!=(const userdata&) const -> bool;
+
 private:
   userdata(const state&, std::any) noexcept;
   userdata(std::any, const reference&) noexcept;

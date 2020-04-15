@@ -161,8 +161,9 @@ public:
       as_variant());
   }
 
-  // TODO operator==
-  // TODO operator!=
+  // raw equal
+  auto operator==(const value&) const -> bool;
+  auto operator!=(const value&) const -> bool;
 
 private:
   static auto at(std::shared_ptr<state_data>, int) -> value;

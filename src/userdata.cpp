@@ -29,4 +29,12 @@ auto userdata::push(std::shared_ptr<state_data> state_data, lua_State* state) co
   return LUA_TUSERDATA;
 }
 
+auto userdata::operator==(const userdata& other) const -> bool
+{
+  // TODO
+  return false;
+}
+
+auto userdata::operator!=(const userdata& other) const -> bool { return !(*this == other); }
+
 } // namespace lua

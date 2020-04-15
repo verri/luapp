@@ -63,6 +63,10 @@ public:
     return call(tuple{std::forward<Args>(args)...}).expand(ret);
   }
 
+  // XXX: Lua logic or shared_ptr logic? Other logic?
+  auto operator==(const function&) const -> bool;
+  auto operator!=(const function&) const -> bool;
+
 private:
   function(reference) noexcept;
 

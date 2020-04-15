@@ -23,6 +23,16 @@ TEST_CASE("Basic value manipulation", "[value]")
   CHECK(!e);
   CHECK(f);
 
+  CHECK(a == nil{});
+  CHECK(b == c);
+  CHECK(d == "1");
+  CHECK(e == false);
+  CHECK(f == true);
+
+  CHECK(a != b);
+  CHECK(b != d);
+  CHECK(a != f);
+
   CHECK(a.is_nil());
   CHECK(b.is_integer());
   CHECK(c.is_floating());

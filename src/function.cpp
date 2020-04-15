@@ -110,4 +110,12 @@ auto function::push(std::shared_ptr<state_data> sdata, lua_State* state) const -
   return LUA_TFUNCTION;
 }
 
+auto function::operator==(const function& other) const -> bool
+{
+  // TODO
+  return false;
+}
+
+auto function::operator!=(const function& other) const -> bool { return !(*this == other); }
+
 } // namespace lua

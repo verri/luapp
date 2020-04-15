@@ -65,4 +65,12 @@ auto table::push(std::shared_ptr<state_data> state_data, lua_State* state) const
   return LUA_TTABLE;
 }
 
+auto table::operator==(const table& other) const -> bool
+{
+  // TODO
+  return false;
+}
+
+auto table::operator!=(const table& other) const -> bool { return !(*this == other); }
+
 } // namespace lua

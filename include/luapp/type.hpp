@@ -19,7 +19,10 @@ namespace lua
 class value;
 
 struct nil
-{};
+{
+  constexpr auto operator==(const nil&) const noexcept -> bool { return true; }
+  constexpr auto operator!=(const nil&) const noexcept -> bool { return false; }
+};
 
 class boolean
 {
@@ -33,6 +36,15 @@ public:
 
   constexpr auto operator=(const boolean&) noexcept -> boolean& = default;
   constexpr auto operator=(boolean&&) noexcept -> boolean& = default;
+
+  constexpr auto operator==(const boolean& other) const noexcept -> bool
+  {
+    return value_ == other.value_;
+  }
+  constexpr auto operator!=(const boolean& other) const noexcept -> bool
+  {
+    return value_ != other.value_;
+  }
 
 private:
   bool value_ = false;

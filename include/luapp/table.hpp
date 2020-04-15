@@ -29,6 +29,9 @@ class table
   friend struct detail::setter;
 
 public:
+  auto operator==(const table&) const -> bool;
+  auto operator!=(const table&) const -> bool;
+
 private:
   explicit table(reference) noexcept;
 

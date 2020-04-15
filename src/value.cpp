@@ -1,5 +1,6 @@
 #include <cassert>
 #include <stdexcept>
+#include <type_traits>
 
 extern "C" {
 #include <lauxlib.h>
@@ -225,5 +226,27 @@ auto detail::setter::operator()(const table& t, const value& key, const value& v
 auto get(const table& t, const value& key) -> value { return detail::getter{}(t, key); }
 
 auto set(const table& t, const value& key, const value& v) -> void { detail::setter{}(t, key, v); }
+
+auto value::operator==(const value& other) const -> bool
+{
+  return std::visit(
+    [](const auto& lhs, const auto& rhs) -> bool {
+      using lhs_type = std::decay_t<decltype(lhs)>;
+      using rhs_type = std::decay_t<decltype(rhs)>;
+
+      if constexpr (std::is_arithmetic_v<lhs_type> && std::is_arithmetic_v<rhs_type>) {
+        return static_cast<floating>(lhs) == static_cast<floating>(rhs);
+      } else if constexpr (std::is_same_v<lhs_type, rhs_type>) {
+        return lhs == rhs;
+      } else {
+        static_assert(!(std::is_same_v<lhs_type, integer> && std::is_same_v<rhs_type, integer>));
+        static_assert(!(std::is_same_v<lhs_type, floating> && std::is_same_v<rhs_type, floating>));
+        return false;
+      }
+    },
+    as_variant(), other.as_variant());
+};
+
+auto value::operator!=(const value& other) const -> bool { return !(*this == other); }
 
 } // namespace lua
