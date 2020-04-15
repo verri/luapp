@@ -161,6 +161,9 @@ public:
       as_variant());
   }
 
+  // TODO operator==
+  // TODO operator!=
+
 private:
   static auto at(std::shared_ptr<state_data>, int) -> value;
   static auto at(std::shared_ptr<state_data>, lua_State*, int) -> value;

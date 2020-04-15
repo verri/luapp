@@ -159,3 +159,43 @@ TEST_CASE("Functions called from lua", "[state]")
     }
   }
 }
+
+TEST_CASE("Calling Lua functions", "[state]")
+{
+  using namespace lua;
+  state s;
+  table g = s.global_table();
+
+  s.do_string(R"lua(
+    f = function(a, b)
+      return a + b, a - b, a / b, a * b
+    end
+  )lua");
+
+  std::optional<function> f = get(g, "f");
+  REQUIRE(f.has_value());
+
+  {
+    const auto [a, b, c, d, e] = s.do_string(returns<5>, "return f(1, 2)");
+    const auto [x, y, z, u, w] = (*f)(returns<5>, integer{1}, integer{2});
+
+    REQUIRE(a.is_integer());
+    REQUIRE(x.is_integer());
+    CHECK(a.get_integer_or(0) == x.get_integer_or(1));
+
+    REQUIRE(b.is_integer());
+    REQUIRE(y.is_integer());
+    CHECK(b.get_integer_or(0) == y.get_integer_or(1));
+
+    REQUIRE(c.is_floating());
+    REQUIRE(z.is_floating());
+    CHECK(c.get_floating_or(0) == z.get_floating_or(1));
+
+    REQUIRE(d.is_integer());
+    REQUIRE(u.is_integer());
+    CHECK(d.get_integer_or(0) == u.get_integer_or(1));
+
+    CHECK(e.is_nil());
+    CHECK(w.is_nil());
+  }
+}

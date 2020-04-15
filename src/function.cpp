@@ -25,22 +25,25 @@ auto function::call(tuple t) const -> tuple
       },
       [&](const reference& ref) -> tuple {
         auto sdata = ref.state();
-        for (const auto i : cool::indices(t.size()))
-          t[i - 1].push(sdata);
-        ref.push(sdata);
-
         const auto state = sdata->state;
         const auto last_top = lua_gettop(state);
+
+        ref.push(sdata);
+        for (const auto i : cool::indices(t.size()))
+          t[i].push(sdata);
+
         if (lua_pcall(state, t.size(), LUA_MULTRET, 0)) {
           std::string error = lua_tostring(state, -1);
           lua_pop(state, 1);
           throw std::runtime_error{std::move(error)};
         }
-        const auto n = lua_gettop(state) - last_top;
 
+        const auto n = lua_gettop(state) - last_top;
         t.resize(n);
         for (const auto i : cool::closed_indices(1, n))
           t[i - 1] = value::at(sdata, last_top + i);
+
+        lua_pop(state, n);
 
         return std::move(t);
       },

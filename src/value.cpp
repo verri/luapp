@@ -14,6 +14,7 @@ extern "C" {
 namespace lua
 {
 
+// XXX: must deal with lua::function as well.
 auto value::checkudata(std::shared_ptr<state_data> state_data, reference ref) -> value
 {
   const auto state = state_data->state;
@@ -65,6 +66,7 @@ auto value::at(std::shared_ptr<state_data> state_data, lua_State* state, int ind
   case LUA_TUSERDATA:
     return checkudata(std::move(state_data), std::move(ref));
   case LUA_TFUNCTION:
+    return function(std::move(ref));
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
     throw std::runtime_error{"invalid type"};
@@ -99,6 +101,7 @@ auto value::from_ref(std::shared_ptr<state_data> state_data, const reference& re
   case LUA_TUSERDATA:
     return checkudata(std::move(state_data), ref);
   case LUA_TFUNCTION:
+    return function(ref);
   case LUA_TLIGHTUSERDATA:
   case LUA_TTHREAD:
     throw std::runtime_error{"invalid type"};

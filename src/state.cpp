@@ -1,3 +1,4 @@
+#include <cassert>
 #include <memory>
 #include <new>
 #include <stdexcept>
@@ -22,6 +23,7 @@ namespace lua
 state::state(options opt)
   : data_(
       new state_data{luaL_newstate(), {}}, +[](state_data* data) {
+        assert(lua_gettop(data->state) == 0);
         lua_close(data->state);
         delete data;
       })
