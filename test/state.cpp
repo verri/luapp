@@ -31,22 +31,42 @@ TEST_CASE("Basic state manipulation", "[state]")
     CHECK(c.is_string());
   }
 
-  s.do_string("t = {}");
-  const std::optional<table> t = get(g, "t");
-
-  REQUIRE(t);
-  set(*t, "bar", "bar");
-
   {
-    const value bar = s.do_string("return t.bar");
-    CHECK(bar.is_string());
-    CHECK(bar.get_string_or("") == "bar");
+    s.do_string("t = {}");
+    const std::optional<table> t = get(g, "t");
+
+    REQUIRE(t);
+    set(*t, "bar", "bar");
+
+    {
+      const value bar = s.do_string("return t.bar");
+      CHECK(bar.is_string());
+      CHECK(bar.get_string_or("") == "bar");
+    }
+
+    {
+      const value bar = get(*t, "bar");
+      CHECK(bar.is_string());
+      CHECK(bar.get_string_or("") == "bar");
+    }
   }
 
   {
-    const value bar = get(*t, "bar");
-    CHECK(bar.is_string());
-    CHECK(bar.get_string_or("") == "bar");
+    const auto t = s.create_table();
+    set(t, "bar", "foo");
+    set(g, "t", t);
+
+    {
+      const value bar = s.do_string("return t.bar");
+      CHECK(bar.is_string());
+      CHECK(bar.get_string_or("") == "foo");
+    }
+
+    {
+      const value bar = get(t, "bar");
+      CHECK(bar.is_string());
+      CHECK(bar.get_string_or("") == "foo");
+    }
   }
 }
 

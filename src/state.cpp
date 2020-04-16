@@ -37,7 +37,7 @@ state::state(options opt)
     luaL_openlibs(state);
 
   const auto push_gc_table = [&](auto f) {
-    lua_createtable(state, 0, 1);
+    lua_createtable(state, 0, 2);
 
     lua_pushstring(state, "__gc");
     lua_pushcfunction(state, f);
@@ -126,6 +126,14 @@ auto state::get_metatable(std::type_index key) const -> const reference&
 
   const auto it = mt.find(key);
   return it != mt.end() ? it->second : mt.at(typeid(void));
+}
+
+auto state::create_table() const -> table
+{
+  const auto state = data_->state;
+  lua_createtable(state, 0, 0);
+  reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
+  return table(std::move(ref));
 }
 
 } // namespace lua

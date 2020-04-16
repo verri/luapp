@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <typeindex>
 #include <unordered_map>
+#include <utility>
 
 extern "C" {
 #include <lua.h>
@@ -13,6 +14,7 @@ extern "C" {
 #include <luapp/reference.hpp>
 #include <luapp/table.hpp>
 #include <luapp/tuple.hpp>
+#include <luapp/userdata.hpp>
 
 namespace lua
 {
@@ -51,6 +53,14 @@ public:
   auto do_string(std::integral_constant<std::size_t, N> nrets, const char* code) const
   {
     return do_string(code).expand(nrets);
+  }
+
+  auto create_table() const -> table;
+
+  template <typename... Args>
+  auto create_userdata(Args&&... args) const -> userdata
+  {
+    return userdata(*this, std::forward<Args>(args)...);
   }
 
 private:
