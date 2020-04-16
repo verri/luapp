@@ -1,6 +1,7 @@
 #ifndef LUAPP_STATE_HPP_INCLUDED
 #define LUAPP_STATE_HPP_INCLUDED
 
+#include <initializer_list>
 #include <memory>
 #include <type_traits>
 #include <typeindex>
@@ -22,7 +23,7 @@ namespace lua
 struct state_data
 {
   lua_State* state;
-  std::unordered_map<std::type_index, reference> metatables;
+  std::unordered_map<std::type_index, table> metatables;
 };
 
 class userdata;
@@ -68,13 +69,16 @@ public:
   }
 
   template <typename T, typename... Args>
-  auto create_userdata(std::in_place_type_t<T> in_place, Args&&... args)
+  auto create_userdata(std::in_place_type_t<T> in_place, Args&&... args) const
   {
     return userdata(*this, in_place, std::forward<Args>(args)...);
   }
 
+  auto register_metatable(std::type_index, std::initializer_list<std::pair<value, value>>) const
+    -> void;
+
 private:
-  auto get_metatable(std::type_index) const -> const reference&;
+  auto get_metatable(std::type_index) const -> const table&;
 
   std::shared_ptr<state_data> data_;
 };

@@ -25,6 +25,8 @@ class table
 {
   friend class state;
   friend class value;
+  friend class userdata;
+  friend class function;
   friend struct detail::getter;
   friend struct detail::setter;
 

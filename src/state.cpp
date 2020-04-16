@@ -56,7 +56,7 @@ state::state(options opt)
         return 0;
       });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
-    data_->metatables.insert_or_assign(typeid(void), std::move(ref));
+    data_->metatables.insert_or_assign(typeid(void), table(std::move(ref)));
   }
 
   {
@@ -68,7 +68,7 @@ state::state(options opt)
         return 0;
       });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
-    data_->metatables.insert_or_assign(typeid(fn_t), std::move(ref));
+    data_->metatables.insert_or_assign(typeid(fn_t), table(std::move(ref)));
   }
 
   {
@@ -80,7 +80,7 @@ state::state(options opt)
         return 0;
       });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
-    data_->metatables.insert_or_assign(typeid(weak_state), std::move(ref));
+    data_->metatables.insert_or_assign(typeid(weak_state), table(std::move(ref)));
   }
 }
 
@@ -123,12 +123,15 @@ auto state::do_string(const char* code) const -> tuple
   return result;
 }
 
-auto state::get_metatable(std::type_index key) const -> const reference&
+auto state::get_metatable(std::type_index key) const -> const table&
 {
-  const auto& mt = data_->metatables;
+  auto& mt = data_->metatables;
 
-  const auto it = mt.find(key);
-  return it != mt.end() ? it->second : mt.at(typeid(void));
+  if (const auto it = mt.find(key); it != mt.end())
+    return it->second;
+
+  const auto [it, _] = mt.insert_or_assign(key, mt.at(typeid(void)));
+  return it->second;
 }
 
 auto state::create_table() const -> table
@@ -137,6 +140,28 @@ auto state::create_table() const -> table
   lua_createtable(state, 0, 0);
   reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
   return table(std::move(ref));
+}
+
+auto state::register_metatable(std::type_index tidx,
+                               std::initializer_list<std::pair<value, value>> entries) const -> void
+{
+  auto& mts = data_->metatables;
+  if (mts.find(tidx) != mts.end())
+    throw std::runtime_error{"metatable already exists."};
+
+  table mt = create_table();
+  table gct(mts.at(typeid(void)));
+
+  set(mt, "__luapp_userdata", true);
+  set(mt, "__gc", get(gct, "__gc"));
+
+  for (const auto& [key, value] : entries) {
+    if (key == "__luapp_userdata" || key == "__gc")
+      throw std::runtime_error{"invalid key: " + key.get_string_or("")};
+    set(mt, key, value);
+  }
+
+  mts.insert_or_assign(tidx, std::move(mt));
 }
 
 } // namespace lua
