@@ -57,7 +57,7 @@ TEST_CASE("Basic value manipulation", "[value]")
   state s;
 
   // userdata and table are always associated to a Lua state.
-  const value g = userdata(s, std::in_place_type<custom_type>);
+  const value g = s.create_userdata(std::in_place_type<custom_type>);
   CHECK(g.is_userdata());
   CHECK(static_cast<std::shared_ptr<custom_type>>(g));
   CHECK(static_cast<std::shared_ptr<const custom_type>>(g));
@@ -127,7 +127,7 @@ TEST_CASE("Functions", "[value]")
 
     state s;
     {
-      const auto udata = userdata(s, std::in_place_type<custom_type>);
+      const auto udata = s.create_userdata(std::in_place_type<custom_type>);
       const auto [a, b, c] = f(returns<3>, udata, 1.0, integer{1});
       CHECK(a);
       CHECK(b);
@@ -136,7 +136,7 @@ TEST_CASE("Functions", "[value]")
 
     {
       const auto udata = std::make_shared<custom_type>();
-      const auto [a, b, c] = f(returns<3>, userdata(s, udata));
+      const auto [a, b, c] = f(returns<3>, s.create_userdata(udata));
       CHECK(a);
       CHECK(!b);
       CHECK(!c);

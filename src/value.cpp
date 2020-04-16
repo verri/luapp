@@ -29,10 +29,10 @@ auto value::checkudata(std::shared_ptr<state_data> state_data, reference ref) ->
   reference metaref(state_data, luaL_ref(state, LUA_REGISTRYINDEX));
   table metatable(metaref);
 
-  if (!get(metatable, "__luapp").get_boolean_or(false))
+  if (!get(metatable, "__luapp_userdata").get_boolean_or(false))
     return nil{};
 
-  return userdata(*reinterpret_cast<const std::any*>(lua_touserdata(state, -1)), metaref);
+  return userdata(std::move(ref));
 }
 
 auto value::at(std::shared_ptr<state_data> state_data, int index) -> value

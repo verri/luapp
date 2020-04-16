@@ -36,46 +36,49 @@ state::state(options opt)
   if (opt & options::std_libs)
     luaL_openlibs(state);
 
-  const auto push_gc_table = [&](auto f) {
+  const auto push_gc_table = [&](const char* marker, int (*f)(lua_State*)) {
     lua_createtable(state, 0, 2);
 
     lua_pushstring(state, "__gc");
     lua_pushcfunction(state, f);
     lua_rawset(state, -3);
 
-    lua_pushstring(state, "__luapp");
+    lua_pushstring(state, marker);
     lua_pushboolean(state, true);
     lua_rawset(state, -3);
   };
 
   {
-    push_gc_table(+[](lua_State* state) -> int {
-      auto* p = reinterpret_cast<std::any*>(lua_touserdata(state, -1));
-      p->~any();
-      return 0;
-    });
+    push_gc_table(
+      "__luapp_userdata", +[](lua_State* state) -> int {
+        auto* p = reinterpret_cast<std::any*>(lua_touserdata(state, -1));
+        p->~any();
+        return 0;
+      });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
     data_->metatables.insert_or_assign(typeid(void), std::move(ref));
   }
 
   {
     using fn_t = std::shared_ptr<std::function<tuple(tuple)>>;
-    push_gc_table(+[](lua_State* state) -> int {
-      auto* p = reinterpret_cast<fn_t*>(lua_touserdata(state, -1));
-      p->~fn_t();
-      return 0;
-    });
+    push_gc_table(
+      "__luapp_function", +[](lua_State* state) -> int {
+        auto* p = reinterpret_cast<fn_t*>(lua_touserdata(state, -1));
+        p->~fn_t();
+        return 0;
+      });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
     data_->metatables.insert_or_assign(typeid(fn_t), std::move(ref));
   }
 
   {
     using weak_state = std::weak_ptr<state_data>;
-    push_gc_table(+[](lua_State* state) -> int {
-      auto* p = reinterpret_cast<weak_state*>(lua_touserdata(state, -1));
-      p->~weak_state();
-      return 0;
-    });
+    push_gc_table(
+      "__luapp_weakstate", +[](lua_State* state) -> int {
+        auto* p = reinterpret_cast<weak_state*>(lua_touserdata(state, -1));
+        p->~weak_state();
+        return 0;
+      });
     reference ref(data_, luaL_ref(state, LUA_REGISTRYINDEX));
     data_->metatables.insert_or_assign(typeid(weak_state), std::move(ref));
   }

@@ -137,7 +137,7 @@ TEST_CASE("Functions called from lua", "[state]")
       return tuple{(bool)a, (bool)b, std::holds_alternative<floating>(c)};
     };
     set(g, "f", f);
-    set(g, "udata", userdata(s, std::in_place_type<custom_type>));
+    set(g, "udata", s.create_userdata(std::in_place_type<custom_type>));
 
     {
       const auto [a, b, c] = s.do_string(returns<3>, "return f(udata, 1.0, 1)");

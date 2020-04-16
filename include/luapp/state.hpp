@@ -57,10 +57,20 @@ public:
 
   auto create_table() const -> table;
 
-  template <typename... Args>
-  auto create_userdata(Args&&... args) const -> userdata
+  template <typename T> auto create_userdata(T value) const
   {
-    return userdata(*this, std::forward<Args>(args)...);
+    return userdata(*this, std::move(value));
+  }
+
+  template <typename T> auto create_userdata(std::shared_ptr<T> ptr) const
+  {
+    return userdata(*this, std::move(ptr));
+  }
+
+  template <typename T, typename... Args>
+  auto create_userdata(std::in_place_type_t<T> in_place, Args&&... args)
+  {
+    return userdata(*this, in_place, std::forward<Args>(args)...);
   }
 
 private:
