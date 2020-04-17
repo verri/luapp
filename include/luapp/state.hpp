@@ -58,20 +58,26 @@ public:
 
   auto create_table() const -> table;
 
-  template <typename T> auto create_userdata(T value) const
-  {
-    return userdata(*this, std::move(value));
-  }
-
   template <typename T> auto create_userdata(std::shared_ptr<T> ptr) const
   {
-    return userdata(*this, std::move(ptr));
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
+    return userdata(*this, typeid(T), std::move(ptr));
+  }
+
+  template <typename T> auto create_userdata(T value) const
+  {
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
+    return userdata(*this, typeid(T), std::make_shared<T>(std::move(value)));
   }
 
   template <typename T, typename... Args>
-  auto create_userdata(std::in_place_type_t<T> in_place, Args&&... args) const
+  auto create_userdata(std::in_place_type_t<T>, Args&&... args) const
   {
-    return userdata(*this, in_place, std::forward<Args>(args)...);
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(!std::is_same_v<T, void>);
+    return userdata(*this, typeid(T), std::make_shared<T>(std::forward<Args>(args)...));
   }
 
   auto register_metatable(std::type_index, std::initializer_list<std::pair<value, value>>) const

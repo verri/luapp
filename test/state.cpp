@@ -2,6 +2,7 @@
 
 #include <luapp/state.hpp>
 #include <luapp/value.hpp>
+#include <utility>
 
 TEST_CASE("Basic state manipulation", "[state]")
 {
@@ -217,5 +218,41 @@ TEST_CASE("Calling Lua functions", "[state]")
 
     CHECK(e.is_nil());
     CHECK(w.is_nil());
+  }
+}
+
+TEST_CASE("Registering metatables", "[state]")
+{
+  using namespace lua;
+  struct foo
+  {
+    auto bar() const -> std::string { return "hello"; }
+  };
+
+  {
+    const state s;
+    const table g = s.global_table();
+
+    function bar = +[](std::shared_ptr<foo> f) { return f->bar(); };
+
+    table index = s.create_table();
+    set(index, "bar", bar);
+
+    s.register_metatable(typeid(foo), {
+                                        {"__index", index},
+                                        {"__tostring", get(index, "bar")},
+                                      });
+
+    set(g, "foo", s.create_userdata(std::in_place_type<foo>));
+
+    value a = s.do_string("return foo:bar()");
+    value b = s.do_string("return tostring(foo)");
+    value c = bar(get(g, "foo"));
+
+    CHECK(a == "hello");
+    CHECK(b == "hello");
+    CHECK(c == "hello");
+    CHECK(a == b);
+    CHECK(b == c);
   }
 }

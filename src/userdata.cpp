@@ -1,4 +1,5 @@
 #include <cassert>
+#include <typeindex>
 
 extern "C" {
 #include <lauxlib.h>
@@ -11,10 +12,10 @@ extern "C" {
 namespace lua
 {
 
-auto userdata::create_reference(const state& s, std::any data) -> reference
+auto userdata::create_reference(const state& s, std::type_index tidx, std::any data) -> reference
 {
   const auto sdata = s.data_;
-  const auto& metatable = s.get_metatable(data.type());
+  const auto& metatable = s.get_metatable(tidx);
   const auto state = sdata->state;
 
   auto p = lua_newuserdata(state, sizeof(std::any));
@@ -28,8 +29,8 @@ auto userdata::create_reference(const state& s, std::any data) -> reference
 
 userdata::userdata(reference ref) noexcept : ref_(std::move(ref)) {}
 
-userdata::userdata(dummy, const state& state, std::any data)
-  : ref_(create_reference(state, std::move(data)))
+userdata::userdata(const state& state, std::type_index tidx, std::any data)
+  : ref_(create_reference(state, tidx, std::move(data)))
 {}
 
 auto userdata::push(std::shared_ptr<state_data> state_data) const -> int
