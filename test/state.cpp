@@ -255,4 +255,12 @@ TEST_CASE("Registering metatables", "[state]")
     CHECK(a == b);
     CHECK(b == c);
   }
+
+  {
+    // forbid creation of metatables of existing objects (guarantee consistency)
+    state s;
+    std::shared_ptr<foo> f = s.create_userdata(std::in_place_type<foo>);
+    CHECK(f);
+    CHECK_THROWS(s.register_metatable(typeid(foo), {}));
+  }
 }

@@ -31,6 +31,8 @@ public:
     return nullptr;
   }
 
+  template <typename T> operator std::shared_ptr<T>() const noexcept { return cast<T>(); }
+
   // always consults the metatable.
   auto operator==(const userdata&) const -> bool;
   auto operator!=(const userdata&) const -> bool;
