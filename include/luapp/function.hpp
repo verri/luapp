@@ -26,7 +26,7 @@ public:
   function(std::function<tuple(tuple)>) noexcept;
 
   template <typename R, typename... Args>
-  function(R (*f)(Args...)) noexcept
+  function(R (*f)(Args...))
     : function(std::function<tuple(tuple)>([f](tuple t) -> tuple { return t.apply(f); }))
   {
     static_assert(std::is_constructible_v<tuple, R> || std::is_same_v<void, R>);
@@ -34,7 +34,7 @@ public:
   }
 
   template <std::size_t N, typename F>
-  function(std::integral_constant<std::size_t, N>, F f) noexcept
+  function(std::integral_constant<std::size_t, N>, F f)
     : function(std::function<tuple(tuple)>([f = std::move(f)](tuple t) -> tuple {
         return t.apply(std::integral_constant<std::size_t, N>{}, f);
       }))

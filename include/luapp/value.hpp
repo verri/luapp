@@ -41,6 +41,8 @@ public:
   value(std::optional<userdata>) noexcept;
   value(std::optional<table>) noexcept;
 
+  template <typename R, typename... Args> value(R (*f)(Args...)) : value(function(f)) {}
+
   value(const value&) = default;
   value(value&&) noexcept = default;
 

@@ -233,10 +233,9 @@ TEST_CASE("Registering metatables", "[state]")
     const state s;
     const table g = s.global_table();
 
-    function bar = +[](std::shared_ptr<foo> f) { return f->bar(); };
-
     table index = s.create_table();
-    set(index, "bar", bar);
+    set(
+      index, "bar", +[](std::shared_ptr<foo> f) { return f->bar(); });
 
     s.register_metatable(typeid(foo), {
                                         {"__index", index},
@@ -247,7 +246,7 @@ TEST_CASE("Registering metatables", "[state]")
 
     value a = s.do_string("return foo:bar()");
     value b = s.do_string("return tostring(foo)");
-    value c = bar(get(g, "foo"));
+    value c = (*static_cast<std::optional<function>>(get(index, "bar")))(get(g, "foo"));
 
     CHECK(a == "hello");
     CHECK(b == "hello");
